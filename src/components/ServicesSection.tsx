@@ -21,15 +21,20 @@ interface ServiceCardProps {
 
 const ServiceCard: React.FC<ServiceCardProps> = ({ title, description, icon, delay }) => {
   const cardRef = useRef<HTMLDivElement>(null);
-  const isInView = useInView(cardRef, { threshold: 0.1 });
+  const isInView = useInView(cardRef, { threshold: 0.1, once: true });
 
   return (
     <div 
       ref={cardRef}
-      className={`glassmorphism rounded-lg p-6 card-hover opacity-0 ${
-        isInView ? 'animate-fade-in' : ''
+      className={`glassmorphism rounded-lg p-6 card-hover ${
+        isInView ? 'animate-fade-in' : 'opacity-0'
       }`}
-      style={{ animationDelay: `${delay}ms` }}
+      style={{ 
+        animationDelay: `${delay}ms`,
+        opacity: isInView ? 1 : 0,
+        transform: isInView ? 'translateY(0)' : 'translateY(20px)',
+        transition: 'opacity 0.7s ease-out, transform 0.7s ease-out'
+      }}
     >
       <div className="h-12 w-12 mb-4 text-waraha-gold bg-waraha-midnight/50 rounded-full flex items-center justify-center">
         {icon}

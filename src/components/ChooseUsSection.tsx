@@ -71,12 +71,16 @@ const ChooseUsSection: React.FC = () => {
       <div className="container mx-auto">
         <h2 className="section-title">Why Choose Us</h2>
         
-        <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-20 ${isInView ? 'opacity-100' : 'opacity-0'} transition-opacity duration-1000`}>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-20 transition-opacity duration-1000">
           {benefits.map((benefit, index) => (
             <div 
               key={benefit.title} 
               className="bg-waraha-midnight/70 p-6 rounded-lg border border-waraha-silver/20 text-center"
-              style={{ transitionDelay: `${index * 200}ms` }}
+              style={{ 
+                transitionDelay: `${index * 200}ms`,
+                opacity: isInView ? 1 : 0,
+                transition: 'opacity 1s ease, transform 1s ease'
+              }}
             >
               <div className="text-4xl md:text-5xl font-serif text-waraha-gold mb-4">{benefit.count}</div>
               <h3 className="text-xl font-semibold text-white mb-2">{benefit.title}</h3>

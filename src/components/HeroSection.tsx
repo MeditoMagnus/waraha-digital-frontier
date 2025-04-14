@@ -37,6 +37,7 @@ const HeroSection: React.FC = () => {
           <h1 
             ref={headlineRef}
             className="text-4xl md:text-5xl lg:text-7xl font-serif text-white opacity-0"
+            style={{opacity: 1, transition: 'opacity 0.7s ease-out, transform 0.7s ease-out'}}
           >
             Your <span className="text-waraha-gold">Perspective.</span> <br />
             Our <span className="text-waraha-silver">Expertise.</span>
@@ -45,12 +46,17 @@ const HeroSection: React.FC = () => {
           <p 
             ref={subheadlineRef}
             className="text-lg md:text-xl text-gray-300 max-w-2xl opacity-0"
+            style={{opacity: 1, transition: 'opacity 0.7s ease-out, transform 0.7s ease-out'}}
           >
             Waraha Group delivers cutting-edge IT consultancy and outsourcing services 
             that transform your business challenges into strategic advantages.
           </p>
           
-          <div ref={ctaRef} className="mt-8 opacity-0">
+          <div 
+            ref={ctaRef} 
+            className="mt-8 opacity-0"
+            style={{opacity: 1, transition: 'opacity 0.7s ease-out, transform 0.7s ease-out'}}
+          >
             <a 
               href="#contact" 
               className="glassmorphism px-8 py-4 text-white text-lg border border-waraha-gold hover:bg-waraha-gold hover:text-waraha-midnight transition-all duration-300 rounded-md inline-block"

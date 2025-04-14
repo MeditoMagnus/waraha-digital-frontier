@@ -4,7 +4,7 @@ import { useInView } from '../hooks/useInView';
 
 const AboutSection: React.FC = () => {
   const sectionRef = useRef<HTMLDivElement>(null);
-  const isInView = useInView(sectionRef, { threshold: 0.2 });
+  const isInView = useInView(sectionRef, { threshold: 0.2, once: true });
   
   const quoteRef = useRef<HTMLDivElement>(null);
   const storyRef = useRef<HTMLDivElement>(null);
@@ -24,7 +24,12 @@ const AboutSection: React.FC = () => {
         <div className="flex flex-col md:flex-row gap-12 items-center">
           <div 
             ref={quoteRef} 
-            className="md:w-1/2 glassmorphism p-8 rounded-lg opacity-0"
+            className={`md:w-1/2 glassmorphism p-8 rounded-lg`}
+            style={{
+              opacity: isInView ? 1 : 0,
+              transform: isInView ? 'translateX(0)' : 'translateX(-20px)',
+              transition: 'opacity 0.7s ease-out, transform 0.7s ease-out'
+            }}
           >
             <h3 className="text-2xl font-serif text-waraha-gold mb-4">Our Philosophy</h3>
             <p className="text-lg italic text-gray-200 mb-6">
@@ -40,7 +45,12 @@ const AboutSection: React.FC = () => {
           
           <div 
             ref={storyRef} 
-            className="md:w-1/2 opacity-0"
+            className={`md:w-1/2`}
+            style={{
+              opacity: isInView ? 1 : 0,
+              transform: isInView ? 'translateX(0)' : 'translateX(20px)',
+              transition: 'opacity 0.7s ease-out, transform 0.7s ease-out'
+            }}
           >
             <h3 className="text-2xl font-serif text-waraha-silver mb-4">The Waraha Story</h3>
             <p className="mb-4 text-gray-300">

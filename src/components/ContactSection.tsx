@@ -20,9 +20,12 @@ const ContactSection: React.FC = () => {
         <div className="flex flex-col lg:flex-row gap-12">
           <div 
             ref={contactRef}
-            className={`lg:w-2/3 glassmorphism rounded-lg p-8 flex flex-col items-center justify-center ${
-              isInView ? 'animate-fade-in' : 'opacity-0'
-            }`}
+            className={`lg:w-2/3 glassmorphism rounded-lg p-8 flex flex-col items-center justify-center`}
+            style={{
+              opacity: isInView ? 1 : 0,
+              transform: isInView ? 'translateY(0)' : 'translateY(20px)',
+              transition: 'opacity 0.7s ease-out, transform 0.7s ease-out'
+            }}
           >
             <h3 className="text-2xl font-serif mb-6 text-center">Get a Free IT Assessment</h3>
             <p className="text-gray-300 text-center max-w-2xl mb-8">
