@@ -52,12 +52,11 @@ const AboutSection: React.FC = () => {
               transition: 'opacity 0.7s ease-out, transform 0.7s ease-out'
             }}
           >
-            <h3 className="text-2xl font-serif text-waraha-silver mb-4">The Waraha Story</h3>
+            <h3 className="text-2xl font-serif text-waraha-silver mb-4">The Waraha Vision</h3>
             <p className="mb-4 text-gray-300">
-              Founded in 2018, Waraha Group was born from the vision of bridging the gap between 
-              complex IT infrastructure and seamless business operations. Our name, "Waraha," 
-              derives from an ancient symbol representing perspective and insight—a perfect 
-              embodiment of our mission.
+              Founded in 2021, Waraha is group of freelancer IT consultants who help customers with choosing 
+              the best IT and management resources. We are a team of visionaries who aim to bring ground 
+              breaking consultancy.
             </p>
             <p className="text-gray-300">
               Today, we're a team of dedicated IT professionals committed to providing 

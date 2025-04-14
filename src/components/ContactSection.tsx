@@ -55,7 +55,7 @@ const ContactSection: React.FC = () => {
                   <Phone size={20} className="text-waraha-gold mt-1 mr-3" />
                   <div>
                     <p className="text-gray-200">Phone</p>
-                    <p className="text-white">+1 (555) 123-4567</p>
+                    <p className="text-white">+971 504122462 / +918369220232</p>
                   </div>
                 </div>
                 
@@ -71,7 +71,7 @@ const ContactSection: React.FC = () => {
                   <MapPin size={20} className="text-waraha-gold mt-1 mr-3" />
                   <div>
                     <p className="text-gray-200">Address</p>
-                    <p className="text-white">123 Tech Plaza, Suite 400<br />San Francisco, CA 94105</p>
+                    <p className="text-white">Mumbai, Maharashtra, India</p>
                   </div>
                 </div>
               </div>
