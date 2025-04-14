@@ -5,24 +5,24 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const benefits = [
   {
-    title: 'Industry Expertise',
-    description: 'Over 15 years of combined experience in IT consultancy and managed services.',
-    count: '15+',
+    title: "Industry Expertise",
+    description: "Over 15 years of combined experience in IT consultancy and managed services.",
+    count: "15+",
   },
   {
-    title: 'Response Time',
-    description: 'Average response time for critical issues, ensuring minimal downtime.',
-    count: '15 min',
+    title: "Response Time",
+    description: "Average response time for critical issues, ensuring minimal downtime.",
+    count: "15 min",
   },
   {
-    title: 'Client Satisfaction',
-    description: 'Of our clients report improved IT efficiency after partnering with us.',
-    count: '98%',
+    title: "Client Satisfaction",
+    description: "Of our clients report improved IT efficiency after partnering with us.",
+    count: "98%",
   },
   {
-    title: 'Cost Reduction',
-    description: 'Average reduction in IT operational costs for our clients.',
-    count: '30%',
+    title: "Cost Reduction",
+    description: "Average reduction in IT operational costs for our clients.",
+    count: "30%",
   },
 ];
 
@@ -46,7 +46,7 @@ const testimonials = [
 
 const ChooseUsSection: React.FC = () => {
   const sectionRef = useRef<HTMLDivElement>(null);
-  const isInView = useInView(sectionRef, { threshold: 0.1 });
+  const isInView = useInView(sectionRef, { threshold: 0.1, once: true });
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const testimonialsRef = useRef<HTMLDivElement>(null);
 

@@ -1,79 +1,15 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useRef } from 'react';
 import { useInView } from '../hooks/useInView';
-import { Phone, Mail, MapPin, Check } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
+import { Phone, Mail, MapPin, ExternalLink } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const ContactSection: React.FC = () => {
-  const { toast } = useToast();
-  const formRef = useRef<HTMLDivElement>(null);
-  const isInView = useInView(formRef, { threshold: 0.1 });
+  const contactRef = useRef<HTMLDivElement>(null);
+  const isInView = useInView(contactRef, { threshold: 0.1, once: true });
   
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    company: '',
-    phone: '',
-    message: '',
-  });
-  
-  const [formErrors, setFormErrors] = useState({
-    name: '',
-    email: '',
-    message: '',
-  });
-  
-  const validateEmail = (email: string) => {
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return re.test(email);
-  };
-  
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    
-    // Clear error when user types
-    if (formErrors[name as keyof typeof formErrors]) {
-      setFormErrors(prev => ({ ...prev, [name]: '' }));
-    }
-  };
-  
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    
-    // Validate form
-    const errors = {
-      name: formData.name ? '' : 'Name is required',
-      email: !formData.email 
-        ? 'Email is required' 
-        : !validateEmail(formData.email) 
-          ? 'Please enter a valid email' 
-          : '',
-      message: formData.message ? '' : 'Message is required',
-    };
-    
-    setFormErrors(errors);
-    
-    // Check if there are any errors
-    if (Object.values(errors).some(error => error)) {
-      return;
-    }
-    
-    // Form is valid, submit it (in a real app, this would be an API call)
-    toast({
-      title: "Message Sent!",
-      description: "We've received your message and will contact you soon.",
-      duration: 5000,
-    });
-    
-    // Reset form
-    setFormData({
-      name: '',
-      email: '',
-      company: '',
-      phone: '',
-      message: '',
-    });
+  const handleMailClick = () => {
+    window.location.href = 'mailto:info@warahagroup.com';
   };
 
   return (
@@ -83,100 +19,28 @@ const ContactSection: React.FC = () => {
         
         <div className="flex flex-col lg:flex-row gap-12">
           <div 
-            ref={formRef}
-            className={`lg:w-2/3 glassmorphism rounded-lg p-8 ${
+            ref={contactRef}
+            className={`lg:w-2/3 glassmorphism rounded-lg p-8 flex flex-col items-center justify-center ${
               isInView ? 'animate-fade-in' : 'opacity-0'
             }`}
           >
-            <h3 className="text-2xl font-serif mb-6">Get a Free IT Assessment</h3>
+            <h3 className="text-2xl font-serif mb-6 text-center">Get a Free IT Assessment</h3>
+            <p className="text-gray-300 text-center max-w-2xl mb-8">
+              We'd love to hear about your IT challenges and discuss how Waraha Group can help transform your business. 
+              Click below to send us an email and we'll get back to you as soon as possible.
+            </p>
             
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label htmlFor="name" className="block mb-2 text-gray-200">Full Name *</label>
-                  <input
-                    type="text"
-                    id="name"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    className={`w-full bg-white/5 border ${
-                      formErrors.name ? 'border-red-500' : 'border-white/20'
-                    } rounded-md p-3 text-white focus:outline-none focus:border-waraha-gold`}
-                  />
-                  {formErrors.name && (
-                    <p className="mt-1 text-red-500 text-sm">{formErrors.name}</p>
-                  )}
-                </div>
-                
-                <div>
-                  <label htmlFor="email" className="block mb-2 text-gray-200">Email Address *</label>
-                  <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    className={`w-full bg-white/5 border ${
-                      formErrors.email ? 'border-red-500' : 'border-white/20'
-                    } rounded-md p-3 text-white focus:outline-none focus:border-waraha-gold`}
-                  />
-                  {formErrors.email && (
-                    <p className="mt-1 text-red-500 text-sm">{formErrors.email}</p>
-                  )}
-                </div>
-                
-                <div>
-                  <label htmlFor="company" className="block mb-2 text-gray-200">Company Name</label>
-                  <input
-                    type="text"
-                    id="company"
-                    name="company"
-                    value={formData.company}
-                    onChange={handleChange}
-                    className="w-full bg-white/5 border border-white/20 rounded-md p-3 text-white focus:outline-none focus:border-waraha-gold"
-                  />
-                </div>
-                
-                <div>
-                  <label htmlFor="phone" className="block mb-2 text-gray-200">Phone Number</label>
-                  <input
-                    type="tel"
-                    id="phone"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    className="w-full bg-white/5 border border-white/20 rounded-md p-3 text-white focus:outline-none focus:border-waraha-gold"
-                  />
-                </div>
-              </div>
-              
-              <div>
-                <label htmlFor="message" className="block mb-2 text-gray-200">Message *</label>
-                <textarea
-                  id="message"
-                  name="message"
-                  rows={5}
-                  value={formData.message}
-                  onChange={handleChange}
-                  className={`w-full bg-white/5 border ${
-                    formErrors.message ? 'border-red-500' : 'border-white/20'
-                  } rounded-md p-3 text-white focus:outline-none focus:border-waraha-gold`}
-                />
-                {formErrors.message && (
-                  <p className="mt-1 text-red-500 text-sm">{formErrors.message}</p>
-                )}
-              </div>
-              
-              <div>
-                <button
-                  type="submit"
-                  className="bg-waraha-gold text-waraha-midnight px-8 py-3 rounded-md font-semibold hover:bg-waraha-gold/90 transition-colors duration-300 flex items-center"
-                >
-                  <Check size={18} className="mr-2" /> Send Message
-                </button>
-              </div>
-            </form>
+            <Button
+              onClick={handleMailClick}
+              variant="default"
+              size="lg"
+              className="bg-waraha-gold hover:bg-waraha-gold/90 text-waraha-midnight font-semibold rounded-md px-8 py-6 flex items-center justify-center gap-3"
+            >
+              <Mail size={20} />
+              Mail Us Now
+              <ExternalLink size={16} />
+            </Button>
+            
           </div>
           
           <div className="lg:w-1/3 space-y-8">

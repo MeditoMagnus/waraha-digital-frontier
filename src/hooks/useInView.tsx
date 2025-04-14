@@ -1,4 +1,3 @@
-
 import { useState, useEffect, RefObject } from 'react';
 
 interface UseInViewOptions {
@@ -22,7 +21,6 @@ export function useInView(
         if (entry.isIntersecting) {
           setIsInView(true);
           
-          // If once is true, disconnect after it becomes visible
           if (once && entry.isIntersecting) {
             observer.disconnect();
           }
