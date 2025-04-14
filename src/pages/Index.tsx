@@ -1,12 +1,30 @@
-// Update this page (the content is just a fallback if you fail to update the page)
 
-const Index = () => {
+import React, { useEffect } from 'react';
+import Navbar from '../components/Navbar';
+import HeroSection from '../components/HeroSection';
+import AboutSection from '../components/AboutSection';
+import ServicesSection from '../components/ServicesSection';
+import ChooseUsSection from '../components/ChooseUsSection';
+import ContactSection from '../components/ContactSection';
+import Footer from '../components/Footer';
+import ParticleBackground from '../components/ParticleBackground';
+
+const Index: React.FC = () => {
+  // This effect runs once when the component mounts
+  useEffect(() => {
+    document.title = 'Waraha Group – IT Consultancy & Outsourcing';
+  }, []);
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
-      </div>
+    <div className="min-h-screen w-full">
+      <ParticleBackground />
+      <Navbar />
+      <HeroSection />
+      <AboutSection />
+      <ServicesSection />
+      <ChooseUsSection />
+      <ContactSection />
+      <Footer />
     </div>
   );
 };
