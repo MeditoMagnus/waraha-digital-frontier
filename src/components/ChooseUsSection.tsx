@@ -28,18 +28,18 @@ const benefits = [
 
 const testimonials = [
   {
-    name: 'Sarah Johnson',
-    position: 'CTO, Tech Innovations',
+    name: "Sarah Johnson",
+    position: "CTO, Tech Innovations",
     quote: "Waraha Group transformed our IT infrastructure completely. Their expertise and proactive approach have reduced our downtime by 70% and significantly improved our team's productivity.",
   },
   {
-    name: 'Michael Chen',
-    position: 'Operations Director, Global Retail',
+    name: "Michael Chen",
+    position: "Operations Director, Global Retail",
     quote: "The team at Waraha truly understands our business needs. They've implemented solutions that not only solved our immediate IT challenges but positioned us for future growth.",
   },
   {
-    name: 'Amelia Rodriguez',
-    position: 'CEO, Healthcare Solutions',
+    name: "Amelia Rodriguez",
+    position: "CEO, Healthcare Solutions",
     quote: "We've worked with several IT consultancies before, but none have delivered the level of service and expertise that Waraha provides. They're not just vendors—they're strategic partners.",
   },
 ];
