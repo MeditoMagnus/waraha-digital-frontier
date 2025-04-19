@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { generateAIResponse } from "@/services/openai";
 
 const PresalesConsultancy = () => {
   const [query, setQuery] = useState('');
@@ -22,15 +23,16 @@ const PresalesConsultancy = () => {
 
     setIsLoading(true);
     try {
-      // We'll implement the Stripe payment here once you provide the secret key
+      const aiResponse = await generateAIResponse(query);
+      setResponse(aiResponse);
       toast({
-        title: "Coming Soon",
-        description: "Payment integration will be added shortly.",
+        title: "Success",
+        description: "Response generated successfully.",
       });
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to process your request. Please try again.",
+        description: "Failed to generate response. Please try again.",
         variant: "destructive",
       });
     } finally {
