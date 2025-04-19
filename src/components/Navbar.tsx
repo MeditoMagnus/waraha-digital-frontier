@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Menu, X } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const Navbar: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -12,6 +13,7 @@ const Navbar: React.FC = () => {
     { name: 'Services', href: '#services' },
     { name: 'Why Us', href: '#why-us' },
     { name: 'Contact', href: '#contact' },
+    { name: 'AI Consultant', href: '/presales-consultancy', isPageLink: true },
   ];
 
   useEffect(() => {
@@ -29,6 +31,30 @@ const Navbar: React.FC = () => {
     };
   }, []);
 
+  const renderNavLink = (link: { name: string; href: string; isPageLink?: boolean }) => {
+    if (link.isPageLink) {
+      return (
+        <Link 
+          key={link.name} 
+          to={link.href}
+          className="text-white hover:text-waraha-gold transition-colors duration-300 relative after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-waraha-gold after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left"
+        >
+          {link.name}
+        </Link>
+      );
+    }
+    
+    return (
+      <a 
+        key={link.name} 
+        href={link.href}
+        className="text-white hover:text-waraha-gold transition-colors duration-300 relative after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-waraha-gold after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left"
+      >
+        {link.name}
+      </a>
+    );
+  };
+
   return (
     <nav 
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
@@ -42,15 +68,7 @@ const Navbar: React.FC = () => {
         
         {/* Desktop Navigation */}
         <div className="hidden md:flex space-x-8">
-          {navLinks.map((link) => (
-            <a 
-              key={link.name} 
-              href={link.href}
-              className="text-white hover:text-waraha-gold transition-colors duration-300 relative after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-waraha-gold after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left"
-            >
-              {link.name}
-            </a>
-          ))}
+          {navLinks.map((link) => renderNavLink(link))}
         </div>
         
         {/* Mobile Menu Button */}
@@ -67,14 +85,9 @@ const Navbar: React.FC = () => {
         <div className="md:hidden glassmorphism mt-2">
           <div className="flex flex-col space-y-4 p-4">
             {navLinks.map((link) => (
-              <a 
-                key={link.name} 
-                href={link.href}
-                className="text-white hover:text-waraha-gold transition-colors duration-300"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                {link.name}
-              </a>
+              <div key={link.name} onClick={() => setIsMobileMenuOpen(false)}>
+                {renderNavLink(link)}
+              </div>
             ))}
           </div>
         </div>
