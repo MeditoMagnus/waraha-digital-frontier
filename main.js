@@ -3,9 +3,6 @@
  * Main JavaScript file for Waraha Group website
  */
 document.addEventListener('DOMContentLoaded', function() {
-  // Initialize current year in footer
-  document.getElementById('current-year').textContent = new Date().getFullYear();
-  
   // Handle navbar scroll effect
   const header = document.querySelector('header');
   window.addEventListener('scroll', function() {
@@ -21,36 +18,51 @@ document.addEventListener('DOMContentLoaded', function() {
   const mobileMenu = document.getElementById('mobile-menu');
   const mobileLinks = document.querySelectorAll('.mobile-links a');
   
-  menuBtn.addEventListener('click', function() {
-    this.classList.toggle('active');
-    mobileMenu.classList.toggle('active');
-    document.body.classList.toggle('no-scroll');
-  });
-  
-  mobileLinks.forEach(link => {
-    link.addEventListener('click', function() {
-      menuBtn.classList.remove('active');
-      mobileMenu.classList.remove('active');
-      document.body.classList.remove('no-scroll');
+  if (menuBtn && mobileMenu) {
+    menuBtn.addEventListener('click', function() {
+      this.classList.toggle('active');
+      mobileMenu.classList.toggle('active');
+      document.body.classList.toggle('no-scroll');
     });
-  });
+  }
+  
+  if (mobileLinks) {
+    mobileLinks.forEach(link => {
+      link.addEventListener('click', function() {
+        if (menuBtn && mobileMenu) {
+          menuBtn.classList.remove('active');
+          mobileMenu.classList.remove('active');
+          document.body.classList.remove('no-scroll');
+        }
+      });
+    });
+  }
   
   // Scroll to section handlers
   const scrollDown = document.getElementById('scroll-down');
-  scrollDown.addEventListener('click', function() {
-    document.getElementById('about').scrollIntoView({ behavior: 'smooth' });
-  });
+  if (scrollDown) {
+    scrollDown.addEventListener('click', function() {
+      const aboutSection = document.getElementById('about');
+      if (aboutSection) {
+        aboutSection.scrollIntoView({ behavior: 'smooth' });
+      }
+    });
+  }
   
   const scrollTop = document.getElementById('scroll-top');
-  scrollTop.addEventListener('click', function() {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  });
+  if (scrollTop) {
+    scrollTop.addEventListener('click', function() {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  }
   
   // Email button click handler
   const mailBtn = document.getElementById('mail-btn');
-  mailBtn.addEventListener('click', function() {
-    window.location.href = 'mailto:info@warahagroup.com';
-  });
+  if (mailBtn) {
+    mailBtn.addEventListener('click', function() {
+      window.location.href = 'mailto:info@warahagroup.com';
+    });
+  }
   
   // Intersection Observer for animated elements
   const animateOnScroll = (entries, observer) => {
