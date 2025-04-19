@@ -1,19 +1,15 @@
 
 import { toast } from "@/hooks/use-toast";
 
-export const generateAIResponse = async (query: string): Promise<string> => {
-  const apiKey = localStorage.getItem('openai_api_key');
-  
-  if (!apiKey) {
-    throw new Error('API key not found');
-  }
+const OPENAI_API_KEY = "sk-vqXYYPRtT2BlbkFJP5K8T3BlbkFJmPuXs7ZHGy5l0123456789"; // Replace with your actual API key
 
+export const generateAIResponse = async (query: string): Promise<string> => {
   try {
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
+        'Authorization': `Bearer ${OPENAI_API_KEY}`
       },
       body: JSON.stringify({
         model: 'gpt-4',
