@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { generateAIResponse } from "@/services/openai";
+import ApiKeyInput from "@/components/ApiKeyInput";
 
 const PresalesConsultancy = () => {
   const [query, setQuery] = useState('');
@@ -21,6 +22,15 @@ const PresalesConsultancy = () => {
       return;
     }
 
+    if (!localStorage.getItem('openai_api_key')) {
+      toast({
+        title: "Error",
+        description: "Please configure your OpenAI API key first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
     try {
       const aiResponse = await generateAIResponse(query);
@@ -32,7 +42,7 @@ const PresalesConsultancy = () => {
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to generate response. Please try again.",
+        description: "Failed to generate response. Please check your API key and try again.",
         variant: "destructive",
       });
     } finally {
@@ -43,6 +53,8 @@ const PresalesConsultancy = () => {
   return (
     <div className="container mx-auto px-4 py-8 max-w-3xl">
       <h1 className="text-4xl font-bold mb-6 text-center">AI Technical Consultant</h1>
+      
+      <ApiKeyInput />
       
       <div className="bg-card rounded-lg shadow-lg p-6 mb-8">
         <p className="text-lg mb-4">
@@ -63,7 +75,7 @@ const PresalesConsultancy = () => {
             className="w-full"
             disabled={isLoading}
           >
-            {isLoading ? "Processing..." : "Unlock Answer – $1"}
+            {isLoading ? "Processing..." : "Generate Response"}
           </Button>
         </div>
       </div>
