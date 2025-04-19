@@ -1,7 +1,7 @@
 
 import { toast } from "@/hooks/use-toast";
 
-const OPENAI_API_KEY = "sk-vqXYYPRtT2BlbkFJP5K8T3BlbkFJmPuXs7ZHGy5l0123456789"; // Replace with your actual API key
+const OPENAI_API_KEY = "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"; // Replace with your actual API key
 
 export const generateAIResponse = async (query: string): Promise<string> => {
   try {
