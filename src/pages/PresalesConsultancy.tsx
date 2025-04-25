@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -7,11 +8,13 @@ import { ArrowLeft, Send, MessageSquare, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import FormattedResponse from "@/components/FormattedResponse";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 const PresalesConsultancy = () => {
   const [query, setQuery] = useState('');
   const [response, setResponse] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState('query');
   const { toast } = useToast();
 
   const handleSubmit = async () => {
@@ -28,6 +31,7 @@ const PresalesConsultancy = () => {
     try {
       const aiResponse = await generateAIResponse(query);
       setResponse(aiResponse);
+      setActiveTab('response'); // Automatically switch to response tab
       toast({
         title: "Success",
         description: "Response generated successfully.",
@@ -69,46 +73,55 @@ const PresalesConsultancy = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            <Textarea
-              placeholder="Ask your technical query..."
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              className="min-h-[120px] text-base"
-            />
-            
-            <Button 
-              onClick={handleSubmit} 
-              className="w-full flex items-center justify-center gap-2"
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Processing...
-                </>
-              ) : (
-                <>
-                  <Send className="h-4 w-4" />
-                  Generate Response
-                </>
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-2 mb-4">
+              <TabsTrigger value="query">Your Query</TabsTrigger>
+              <TabsTrigger value="response" disabled={!response}>Expert Response</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="query" className="space-y-4">
+              <Textarea
+                placeholder="Ask your technical query..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                className="min-h-[120px] text-base"
+              />
+              
+              <Button 
+                onClick={handleSubmit} 
+                className="w-full flex items-center justify-center gap-2"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <Send className="h-4 w-4" />
+                    Generate Response
+                  </>
+                )}
+              </Button>
+            </TabsContent>
+
+            <TabsContent value="response">
+              {response && (
+                <Card className="border-0 shadow-none">
+                  <CardHeader className="flex flex-row items-center gap-2 px-0 pt-0">
+                    <MessageSquare className="h-5 w-5 text-primary" />
+                    <CardTitle>Technical Analysis</CardTitle>
+                  </CardHeader>
+                  <CardContent className="px-0 pt-2">
+                    <FormattedResponse content={response} />
+                  </CardContent>
+                </Card>
               )}
-            </Button>
-          </div>
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
-
-      {response && (
-        <Card className="mb-8">
-          <CardHeader className="flex flex-row items-center gap-2">
-            <MessageSquare className="h-5 w-5 text-primary" />
-            <CardTitle>Expert Response</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <FormattedResponse content={response} />
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 };
