@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -7,6 +6,7 @@ import { generateAIResponse } from "@/services/openai";
 import { ArrowLeft, Send, MessageSquare, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
+import FormattedResponse from "@/components/FormattedResponse";
 
 const PresalesConsultancy = () => {
   const [query, setQuery] = useState('');
@@ -46,62 +46,6 @@ const PresalesConsultancy = () => {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const formatResponse = (text: string) => {
-    if (!text) return [];
-    
-    const sections = text.split(/^(#{1,3} .+)$/m);
-    let formatted: React.ReactNode[] = [];
-    let currentHeading: string | null = null;
-    
-    sections.forEach((section, index) => {
-      if (/^#{1,3} .+$/.test(section)) {
-        currentHeading = section;
-        const level = (section.match(/^(#+)/) || [''])[0].length;
-        
-        formatted.push(
-          <div key={`heading-${index}`} className={`font-bold mt-4 mb-2 ${level === 1 ? 'text-2xl' : level === 2 ? 'text-xl' : 'text-lg'}`}>
-            {section.replace(/^#+\s/, '')}
-          </div>
-        );
-      } else if (section.trim()) {
-        const paragraphs = section.split(/\n\n+/);
-        
-        paragraphs.forEach((paragraph, pIndex) => {
-          if (paragraph.trim()) {
-            if (paragraph.includes('```')) {
-              const parts = paragraph.split(/```[\w]*\n|```/);
-              parts.forEach((part, partIndex) => {
-                if (partIndex % 2 === 0) {
-                  if (part.trim()) {
-                    formatted.push(
-                      <p key={`p-${index}-${pIndex}-${partIndex}`} className="mb-3">
-                        {part}
-                      </p>
-                    );
-                  }
-                } else {
-                  formatted.push(
-                    <pre key={`code-${index}-${pIndex}-${partIndex}`} className="bg-gray-100 p-3 rounded my-3 overflow-x-auto">
-                      <code>{part}</code>
-                    </pre>
-                  );
-                }
-              });
-            } else {
-              formatted.push(
-                <p key={`p-${index}-${pIndex}`} className="mb-3">
-                  {paragraph}
-                </p>
-              );
-            }
-          }
-        });
-      }
-    });
-    
-    return formatted;
   };
 
   return (
@@ -161,9 +105,7 @@ const PresalesConsultancy = () => {
             <CardTitle>Expert Response</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="prose max-w-none">
-              {formatResponse(response)}
-            </div>
+            <FormattedResponse content={response} />
           </CardContent>
         </Card>
       )}
