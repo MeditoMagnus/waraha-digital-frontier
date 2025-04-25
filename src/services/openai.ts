@@ -1,14 +1,19 @@
 
 import { toast } from "@/hooks/use-toast";
 
-// DO NOT SHARE THIS KEY - Replace with your actual encrypted API key
-const ENCRYPTED_API_KEY = "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";
+// This is a placeholder - replace with your actual API key once provided
+const ENCRYPTED_API_KEY = "YOUR_ENCRYPTED_API_KEY_HERE";
 
-// Simple decrypt function - you should use a more secure encryption method in production
+// Implement proper encryption/decryption
 const decryptApiKey = (encryptedKey: string): string => {
-  // Implement your decryption logic here
-  // For now, we'll just return the encrypted key
-  return encryptedKey;
+  try {
+    // TODO: Implement actual decryption logic
+    // For now, returning the encrypted key as-is
+    return encryptedKey;
+  } catch (error) {
+    console.error('Decryption error:', error);
+    throw new Error('Failed to decrypt API key');
+  }
 }
 
 export const generateAIResponse = async (query: string): Promise<string> => {
@@ -71,3 +76,4 @@ export const generateAIResponse = async (query: string): Promise<string> => {
     throw error;
   }
 }
+
