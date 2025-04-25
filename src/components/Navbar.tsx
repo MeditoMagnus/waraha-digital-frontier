@@ -82,7 +82,7 @@ const Navbar: React.FC = () => {
       
       {/* Mobile Menu */}
       {isMobileMenuOpen && (
-        <div className="md:hidden glassmorphism mt-2">
+        <div className="md:hidden glassmorphism fixed top-[60px] left-0 w-full z-50">
           <div className="flex flex-col space-y-4 p-4">
             {navLinks.map((link) => (
               <div key={link.name} onClick={() => setIsMobileMenuOpen(false)}>
