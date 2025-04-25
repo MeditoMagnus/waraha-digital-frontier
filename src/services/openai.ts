@@ -2,7 +2,7 @@
 import { toast } from "@/hooks/use-toast";
 
 // DO NOT SHARE THIS KEY - Replace with your actual encrypted API key
-const ENCRYPTED_API_KEY = "YOUR_ENCRYPTED_API_KEY";
+const ENCRYPTED_API_KEY = "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";
 
 // Simple decrypt function - you should use a more secure encryption method in production
 const decryptApiKey = (encryptedKey: string): string => {
