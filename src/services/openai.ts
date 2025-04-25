@@ -1,21 +1,19 @@
 
 import { toast } from "@/hooks/use-toast";
 
-// This will be populated from an environment variable or secure storage
-let OPENAI_API_KEY = "";
+// DO NOT SHARE THIS KEY - Replace with your actual encrypted API key
+const ENCRYPTED_API_KEY = "YOUR_ENCRYPTED_API_KEY";
 
-export const setApiKey = (key: string) => {
-  OPENAI_API_KEY = key;
-};
+// Simple decrypt function - you should use a more secure encryption method in production
+const decryptApiKey = (encryptedKey: string): string => {
+  // Implement your decryption logic here
+  // For now, we'll just return the encrypted key
+  return encryptedKey;
+}
 
 export const generateAIResponse = async (query: string): Promise<string> => {
-  if (!OPENAI_API_KEY) {
-    throw new Error('API key not set');
-  }
-
   try {
     // Determine if the query is IT-related using basic keyword detection
-    // This is a simple implementation - OpenAI itself will do most of the role enforcement
     const itRelatedKeywords = [
       "software", "hardware", "network", "server", "cloud", "database", 
       "security", "programming", "code", "development", "IT", "technology", 
@@ -41,7 +39,7 @@ export const generateAIResponse = async (query: string): Promise<string> => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${OPENAI_API_KEY}`
+        'Authorization': `Bearer ${decryptApiKey(ENCRYPTED_API_KEY)}`
       },
       body: JSON.stringify({
         model: 'gpt-4o',
