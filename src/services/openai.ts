@@ -1,20 +1,33 @@
 
 import { toast } from "@/hooks/use-toast";
+import CryptoJS from 'crypto-js';
 
-// This is a placeholder - replace with your actual API key once provided
-const ENCRYPTED_API_KEY = "YOUR_ENCRYPTED_API_KEY_HERE";
+// We'll use an environment-specific secret for encryption
+const ENCRYPTION_SECRET = 'WARAHA_SECURE_SECRET_2025';
 
-// Implement proper encryption/decryption
+// Encrypt the API key
+const encryptApiKey = (apiKey: string): string => {
+  try {
+    return CryptoJS.AES.encrypt(apiKey, ENCRYPTION_SECRET).toString();
+  } catch (error) {
+    console.error('Encryption error:', error);
+    throw new Error('Failed to encrypt API key');
+  }
+}
+
+// Decrypt the API key
 const decryptApiKey = (encryptedKey: string): string => {
   try {
-    // TODO: Implement actual decryption logic
-    // For now, returning the encrypted key as-is
-    return encryptedKey;
+    const bytes = CryptoJS.AES.decrypt(encryptedKey, ENCRYPTION_SECRET);
+    return bytes.toString(CryptoJS.enc.Utf8);
   } catch (error) {
     console.error('Decryption error:', error);
     throw new Error('Failed to decrypt API key');
   }
 }
+
+// Encrypted API key (to be replaced with the actual encrypted key)
+const ENCRYPTED_API_KEY = encryptApiKey("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");
 
 export const generateAIResponse = async (query: string): Promise<string> => {
   try {
@@ -76,4 +89,3 @@ export const generateAIResponse = async (query: string): Promise<string> => {
     throw error;
   }
 }
-
