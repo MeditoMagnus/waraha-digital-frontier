@@ -14,7 +14,7 @@ interface CoinWalletProps {
 const CoinWallet = ({ onPurchaseClick }: CoinWalletProps) => {
   const { toast } = useToast();
 
-  const { data: walletData, isLoading } = useQuery({
+  const { data: walletData, isLoading, error, refetch } = useQuery({
     queryKey: ['wallet'],
     queryFn: async () => {
       try {
@@ -25,6 +25,8 @@ const CoinWallet = ({ onPurchaseClick }: CoinWalletProps) => {
           throw new Error(userError?.message || "User not authenticated");
         }
         
+        console.log("Fetching wallet for user:", user.id); // Debug log
+        
         // Query the wallet using the user ID
         const { data, error } = await supabase
           .from('user_wallets')
@@ -33,11 +35,15 @@ const CoinWallet = ({ onPurchaseClick }: CoinWalletProps) => {
           .maybeSingle();
         
         if (error) {
+          console.error("Wallet fetch error:", error); // Debug log
           throw error;
         }
+
+        console.log("Wallet data received:", data); // Debug log
         
         return data || { coin_balance: 0 };
       } catch (error: any) {
+        console.error("Error in wallet query:", error); // Debug log
         toast({
           title: "Error fetching wallet",
           description: error.message,
@@ -45,8 +51,32 @@ const CoinWallet = ({ onPurchaseClick }: CoinWalletProps) => {
         });
         return { coin_balance: 0 };
       }
-    }
+    },
+    retry: 2, // Retry failed requests up to 2 times
+    refetchOnWindowFocus: true // Refresh when window regains focus
   });
+
+  // If there's an error, show error toast and retry button
+  if (error) {
+    return (
+      <Card className="mb-6">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-2xl font-bold">Your Coin Balance</CardTitle>
+          <Coins className="h-6 w-6 text-yellow-500" />
+        </CardHeader>
+        <CardContent>
+          <div className="mt-2 space-y-4">
+            <CardDescription className="text-red-500">
+              Failed to load wallet data
+            </CardDescription>
+            <Button onClick={() => refetch()} variant="secondary">
+              Retry
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="mb-6">
