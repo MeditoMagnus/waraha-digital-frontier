@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
@@ -38,6 +39,7 @@ import {
   Cell,
   Legend
 } from 'recharts';
+import { ChartContainer, ChartTooltip } from "@/components/ui/chart";
 
 // Interface for user data
 interface User {
@@ -84,64 +86,17 @@ const AdminDashboard = () => {
 
   // Check if user is logged in as admin
   useEffect(() => {
-    const checkAdminAccess = async () => {
-      try {
-        // First check localStorage for admin role
-        const userRole = localStorage.getItem('userRole');
-        
-        if (userRole === 'admin') {
-          // If admin in localStorage, proceed with fetching data
-          fetchData();
-          return;
-        }
-        
-        // If not in localStorage, check Supabase
-        const { data: { user } } = await supabase.auth.getUser();
-        
-        if (!user) {
-          toast({
-            title: "Access Denied",
-            description: "Please log in to access this page",
-            variant: "destructive",
-          });
-          navigate('/login');
-          return;
-        }
-        
-        // Query the user_roles table to check if user has admin role
-        const { data: roles, error } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', user.id);
-        
-        if (error) throw error;
-        
-        // Check if user has admin role
-        const isAdmin = roles && roles.some(role => role.role === 'admin');
-        
-        if (!isAdmin) {
-          toast({
-            title: "Access Denied",
-            description: "You must have admin privileges to access this page",
-            variant: "destructive",
-          });
-          navigate('/');
-        } else {
-          localStorage.setItem('userRole', 'admin');
-          fetchData();
-        }
-      } catch (error) {
-        console.error("Error checking admin access:", error);
-        toast({
-          title: "Error",
-          description: "Failed to verify your access level",
-          variant: "destructive",
-        });
-        navigate('/login');
-      }
-    };
-    
-    checkAdminAccess();
+    const userRole = localStorage.getItem('userRole');
+    if (userRole !== 'admin') {
+      toast({
+        title: "Access Denied",
+        description: "You must be logged in as an admin to access this page",
+        variant: "destructive",
+      });
+      navigate('/login');
+    } else {
+      fetchData();
+    }
   }, [navigate, toast]);
 
   // Fetch data from Supabase
@@ -269,27 +224,14 @@ const AdminDashboard = () => {
     }
   }, [searchTerm, users, queries]);
 
-  const handleLogout = async () => {
-    try {
-      // Clear localStorage first
-      localStorage.clear();
-      
-      // Then sign out from Supabase
-      await supabase.auth.signOut();
-      
-      toast({
-        title: "Logged Out",
-        description: "You have been logged out successfully",
-      });
-      navigate('/login');
-    } catch (error) {
-      console.error('Error logging out:', error);
-      toast({
-        title: "Error",
-        description: "Failed to log out",
-        variant: "destructive",
-      });
-    }
+  const handleLogout = () => {
+    localStorage.removeItem('userRole');
+    localStorage.removeItem('userName');
+    toast({
+      title: "Logged Out",
+      description: "You have been logged out successfully",
+    });
+    navigate('/login');
   };
 
   // Function to export data as CSV

@@ -5,28 +5,27 @@ import { toast } from "@/hooks/use-toast";
 // Track a query in the database
 export const trackQuery = async (query: string, response: string) => {
   try {
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    const user = supabase.auth.getUser();
+    const userEmail = (await user).data.user?.email || 'anonymous';
     
-    if (userError || !user) {
-      console.error("No authenticated user found", userError);
-      return false;
-    }
+    // Store query in Supabase - note: in a real implementation, you would have
+    // a table for this in Supabase, but we're just implementing the tracking function
+    // as a placeholder for now
     
-    // Use generic type with any to bypass TypeScript's strict type checking
-    // This is necessary because the query_history table isn't in the generated types
-    const { error } = await supabase
-      .from('query_history' as any)
-      .insert({
-        user_id: user.id,
-        query_text: query,
-        response_text: response,
-        response_length: response.length
-      } as any);
+    console.log("Query tracked:", {
+      query,
+      response: response.substring(0, 100) + "...",
+      email: userEmail,
+      timestamp: new Date()
+    });
     
-    if (error) {
-      console.error("Error tracking query:", error);
-      return false;
-    }
+    // In a real implementation, you would send this data to Supabase
+    // await supabase.from('queries').insert({
+    //   user_email: userEmail,
+    //   query_text: query,
+    //   response_length: response.length,
+    //   created_at: new Date()
+    // });
     
     return true;
   } catch (error) {
@@ -35,43 +34,25 @@ export const trackQuery = async (query: string, response: string) => {
   }
 }
 
-// Get query statistics
+// Get statistics about queries
 export const getQueryStatistics = async () => {
   try {
-    // Use generic type with any to bypass TypeScript's strict type checking
-    // This is necessary because the query_statistics view isn't in the generated types
-    const { data, error } = await supabase
-      .from('query_statistics' as any)
-      .select('*')
-      .limit(1)
-      .single();
-    
-    if (error) {
-      console.error("Error getting query statistics:", error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch query statistics",
-        variant: "destructive",
-      });
-      
-      return {
-        total_queries: 0,
-        average_length: 0,
-        unique_users: 0
-      };
-    }
-    
-    return data || {
-      total_queries: 0,
-      average_length: 0,
-      unique_users: 0
+    // This would be implemented with actual Supabase queries in a real application
+    // For now, we'll return mock data
+    return {
+      totalQueries: 0,
+      averageLength: 0
     };
   } catch (error) {
     console.error("Error getting query statistics:", error);
+    toast({
+      title: "Error",
+      description: "Failed to fetch query statistics",
+      variant: "destructive",
+    });
     return {
-      total_queries: 0,
-      average_length: 0,
-      unique_users: 0
+      totalQueries: 0,
+      averageLength: 0
     };
   }
 }

@@ -35,12 +35,7 @@ export const LoginForm = () => {
 
   const onSubmit = (values: z.infer<typeof loginSchema>) => {
     if (values.isAdmin) {
-      // Admin authentication
       if (values.email === "admin@warahagroup.com" && values.password === "22Waraha#*") {
-        // Clear any existing conflicting data first
-        localStorage.clear();
-        
-        // Store admin credentials in localStorage
         localStorage.setItem("userRole", "admin");
         localStorage.setItem("userName", "Admin");
         
@@ -48,11 +43,7 @@ export const LoginForm = () => {
           title: "Admin Login Successful",
           description: "Welcome to the admin dashboard",
         });
-        
-        // Navigate to admin dashboard after a delay to ensure localStorage is set
-        setTimeout(() => {
-          navigate("/admin-dashboard");
-        }, 300);
+        navigate("/admin-dashboard");
       } else {
         toast({
           title: "Login Failed",
@@ -61,13 +52,9 @@ export const LoginForm = () => {
         });
       }
     } else {
-      // Regular user authentication
       const user = MOCK_USERS.find(user => user.email === values.email);
       
       if (user && verifyPassword(values.password, user.passwordHash)) {
-        // Clear any existing conflicting data first
-        localStorage.clear();
-        
         localStorage.setItem("userRole", "user");
         localStorage.setItem("userEmail", user.email);
         localStorage.setItem("userName", user.name);
@@ -76,11 +63,7 @@ export const LoginForm = () => {
           title: "Login Successful",
           description: `Welcome back, ${user.name}`,
         });
-        
-        // Using a small timeout to ensure localStorage is updated
-        setTimeout(() => {
-          navigate("/presales-consultancy");
-        }, 300);
+        navigate("/presales-consultancy");
       } else {
         toast({
           title: "Login Failed",
