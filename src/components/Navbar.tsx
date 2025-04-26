@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { Menu, X, LogIn } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 
 const Navbar: React.FC = () => {
@@ -24,21 +23,15 @@ const Navbar: React.FC = () => {
     { name: 'Contact', href: '#contact' },
     { 
       name: 'AI Consultant', 
-      href: isLoggedIn && userRole === 'user' ? '/presales-consultancy' : '/login', 
+      href: '/login', 
       isPageLink: true 
     },
   ];
   
-  // Add login/dashboard links based on auth status
-  const authLinks = isLoggedIn ? (
-    userRole === 'admin' ? (
-      { name: 'Admin Dashboard', href: '/admin-dashboard', isPageLink: true } 
-    ) : (
-      { name: 'My Account', href: '/presales-consultancy', isPageLink: true }
-    )
-  ) : (
-    { name: 'Login', href: '/login', isPageLink: true, icon: LogIn }
-  );
+  // Add admin dashboard link if user is admin
+  const authLinks = isLoggedIn && userRole === 'admin' ? 
+    [{ name: 'Admin Dashboard', href: '/admin-dashboard', isPageLink: true }] : 
+    [];
 
   useEffect(() => {
     const handleScroll = () => {
@@ -94,7 +87,7 @@ const Navbar: React.FC = () => {
         {/* Desktop Navigation */}
         <div className="hidden md:flex space-x-8">
           {navLinks.map((link) => renderNavLink(link))}
-          {renderNavLink(authLinks)}
+          {authLinks.map((link) => renderNavLink(link))}
         </div>
         
         {/* Mobile Menu Button */}
@@ -115,9 +108,11 @@ const Navbar: React.FC = () => {
                 {renderNavLink(link)}
               </div>
             ))}
-            <div onClick={() => setIsMobileMenuOpen(false)}>
-              {renderNavLink(authLinks)}
-            </div>
+            {authLinks.map((link) => (
+              <div key={link.name} onClick={() => setIsMobileMenuOpen(false)}>
+                {renderNavLink(link)}
+              </div>
+            ))}
           </div>
         </div>
       )}
