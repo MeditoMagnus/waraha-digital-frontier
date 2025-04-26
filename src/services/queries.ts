@@ -12,7 +12,8 @@ export const trackQuery = async (query: string, response: string) => {
       return false;
     }
     
-    // Use type assertion to work around TypeScript limitations
+    // Use a more explicit type assertion that bypasses TypeScript's type checking 
+    // for this specific operation
     const { error } = await (supabase
       .from('query_history') as any)
       .insert({
@@ -37,7 +38,8 @@ export const trackQuery = async (query: string, response: string) => {
 // Get query statistics
 export const getQueryStatistics = async () => {
   try {
-    // Use type assertion to work around TypeScript limitations
+    // Use a more explicit type assertion that bypasses TypeScript's type checking
+    // for this specific operation
     const { data, error } = await (supabase
       .from('query_statistics') as any)
       .select('*')
