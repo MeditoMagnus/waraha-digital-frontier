@@ -13,6 +13,7 @@ const Navbar: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
   
@@ -56,18 +57,38 @@ const Navbar: React.FC = () => {
   }, []);
 
   const handleLogout = async () => {
-    localStorage.removeItem('userRole');
-    localStorage.removeItem('userName');
-    localStorage.removeItem('userEmail');
-    
-    await supabase.auth.signOut();
-    
-    toast({
-      title: "Logged Out",
-      description: "You have been logged out successfully",
-    });
-    
-    navigate('/login');
+    try {
+      setIsLoggingOut(true);
+      
+      // Clear local storage
+      localStorage.removeItem('userRole');
+      localStorage.removeItem('userName');
+      localStorage.removeItem('userEmail');
+      
+      // Sign out from Supabase
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        throw error;
+      }
+      
+      toast({
+        title: "Logged Out",
+        description: "You have been logged out successfully",
+      });
+      
+      // Navigate to home
+      navigate('/');
+    } catch (error: any) {
+      console.error('Logout error:', error);
+      toast({
+        title: "Logout Failed",
+        description: error.message || "Failed to log out. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoggingOut(false);
+    }
   };
 
   const navLinks: NavLinkType[] = [

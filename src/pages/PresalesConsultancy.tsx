@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, LogOut } from "lucide-react";
@@ -12,11 +12,13 @@ import CoinWallet from '@/components/CoinWallet';
 import PurchaseCoins from '@/components/PurchaseCoins';
 import QueryForm from '@/components/presales/QueryForm';
 import ResponseDisplay from '@/components/presales/ResponseDisplay';
+import { supabase } from "@/integrations/supabase/client";
 
 const PresalesConsultancy = () => {
-  const [response, setResponse] = React.useState('');
-  const [activeTab, setActiveTab] = React.useState('query');
-  const [showPurchaseDialog, setShowPurchaseDialog] = React.useState(false);
+  const [response, setResponse] = useState('');
+  const [activeTab, setActiveTab] = useState('query');
+  const [showPurchaseDialog, setShowPurchaseDialog] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
   
@@ -39,15 +41,39 @@ const PresalesConsultancy = () => {
     setActiveTab('response');
   };
   
-  const handleLogout = () => {
-    localStorage.removeItem('userRole');
-    localStorage.removeItem('userName');
-    localStorage.removeItem('userEmail');
-    toast({
-      title: "Logged Out",
-      description: "You have been logged out successfully",
-    });
-    navigate('/login');
+  const handleLogout = async () => {
+    try {
+      setIsLoggingOut(true);
+      
+      // Sign out from Supabase
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        throw error;
+      }
+      
+      // Clear local storage
+      localStorage.removeItem('userRole');
+      localStorage.removeItem('userName');
+      localStorage.removeItem('userEmail');
+      
+      toast({
+        title: "Logged Out",
+        description: "You have been logged out successfully",
+      });
+      
+      // Navigate to home page
+      navigate('/');
+    } catch (error: any) {
+      console.error('Logout error:', error);
+      toast({
+        title: "Logout Failed",
+        description: error.message || "Failed to log out. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoggingOut(false);
+    }
   };
 
   return (
@@ -61,9 +87,15 @@ const PresalesConsultancy = () => {
           Back to Waraha Group
         </Link>
         
-        <Button variant="ghost" onClick={handleLogout}>
-          <LogOut className="mr-2 h-4 w-4" />
-          Logout
+        <Button variant="ghost" onClick={handleLogout} disabled={isLoggingOut}>
+          {isLoggingOut ? (
+            <>Processing...</>
+          ) : (
+            <>
+              <LogOut className="mr-2 h-4 w-4" />
+              Logout
+            </>
+          )}
         </Button>
       </div>
       
