@@ -1,0 +1,126 @@
+
+import React from 'react';
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Send, Loader2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+
+interface QueryFormProps {
+  onQuerySubmit: (response: string) => void;
+}
+
+const QueryForm = ({ onQuerySubmit }: QueryFormProps) => {
+  const [query, setQuery] = React.useState('');
+  const [isLoading, setIsLoading] = React.useState(false);
+  const { toast } = useToast();
+
+  const handleSubmit = async () => {
+    if (!query.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter your technical query first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const { data: wallet, error: walletError } = await supabase
+        .from('user_wallets')
+        .select('coin_balance')
+        .single();
+
+      if (walletError) throw walletError;
+
+      if (!wallet || wallet.coin_balance < 25) {
+        toast({
+          title: "Insufficient Coins",
+          description: "You need 25 coins to generate an AI response. Please purchase more coins.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const { data, error } = await supabase.functions.invoke('chat-with-ai', {
+        body: { query },
+      });
+
+      if (error) throw error;
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+      
+      const { error: transactionError } = await supabase
+        .from('coin_transactions')
+        .insert({
+          user_id: user.id,
+          amount: -25,
+          transaction_type: 'usage',
+          description: 'AI consultation cost'
+        });
+
+      if (transactionError) throw transactionError;
+      
+      const { error: updateError } = await supabase
+        .from('user_wallets')
+        .update({ 
+          coin_balance: wallet.coin_balance - 25,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', user.id);
+
+      if (updateError) throw updateError;
+
+      onQuerySubmit(data.response);
+      
+      toast({
+        title: "Success",
+        description: "Response generated successfully. 25 coins have been deducted.",
+      });
+
+      setQuery('');
+    } catch (error: any) {
+      console.error('Error:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to generate response. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <Textarea
+        placeholder="Ask your technical query..."
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        className="min-h-[120px] text-base"
+      />
+      
+      <Button 
+        onClick={handleSubmit} 
+        className="w-full flex items-center justify-center gap-2"
+        disabled={isLoading}
+      >
+        {isLoading ? (
+          <>
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Processing...
+          </>
+        ) : (
+          <>
+            <Send className="h-4 w-4" />
+            Generate Response
+          </>
+        )}
+      </Button>
+    </div>
+  );
+};
+
+export default QueryForm;
