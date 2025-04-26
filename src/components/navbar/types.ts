@@ -6,6 +6,7 @@ export interface NavLinkType {
   href: string;
   isPageLink?: boolean;
   isLogout?: boolean;
+  isPremium?: boolean;
   icon?: React.ComponentType<React.SVGProps<SVGSVGElement>>;
   onClick?: () => void;
 }
