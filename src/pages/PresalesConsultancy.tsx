@@ -1,15 +1,14 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { generateAIResponse } from "@/services/openai";
 import { ArrowLeft, Send, MessageSquare, Loader2, LogOut } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import FormattedResponse from "@/components/FormattedResponse";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { supabase } from "@/integrations/supabase/client";
 
 const PresalesConsultancy = () => {
   const [query, setQuery] = useState('');
@@ -47,30 +46,24 @@ const PresalesConsultancy = () => {
 
     setIsLoading(true);
     try {
-      const aiResponse = await generateAIResponse(query);
-      setResponse(aiResponse);
-      setActiveTab('response'); // Automatically switch to response tab
-      
-      // In a real app, we would save this query to a database
-      console.log("Query logged:", {
-        user: userName,
-        query: query,
-        timestamp: new Date().toISOString()
+      const { data, error } = await supabase.functions.invoke('chat-with-ai', {
+        body: { query },
       });
+
+      if (error) throw error;
+
+      setResponse(data.response);
+      setActiveTab('response');
       
       toast({
         title: "Success",
         description: "Response generated successfully.",
       });
     } catch (error) {
-      let errorMessage = "Failed to generate response. Please try again.";
-      if (error instanceof Error) {
-        errorMessage = error.message;
-      }
-      
+      console.error('Error:', error);
       toast({
         title: "Error",
-        description: errorMessage,
+        description: error.message || "Failed to generate response. Please try again.",
         variant: "destructive",
       });
     } finally {
