@@ -1,11 +1,11 @@
 
-import { ComponentType } from 'react';
+import { SVGProps } from 'react';
 
 export interface NavLinkType {
   name: string;
   href: string;
   isPageLink?: boolean;
   isLogout?: boolean;
-  icon?: ComponentType;
+  icon?: React.ComponentType<React.SVGProps<SVGSVGElement>>;
   onClick?: () => void;
 }

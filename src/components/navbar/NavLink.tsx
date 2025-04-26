@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 interface NavLinkProps {
   href: string;
   name: string;
-  icon?: React.ComponentType;
+  icon?: React.ComponentType<React.SVGProps<SVGSVGElement>>;
   isLogout?: boolean;
   isPageLink?: boolean;
   onClick?: () => void;
