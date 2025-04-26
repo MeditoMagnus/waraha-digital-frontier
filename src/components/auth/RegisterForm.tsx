@@ -40,14 +40,15 @@ export const RegisterForm = ({ onSuccess, setLoginEmail }: RegisterFormProps) =>
 
   const onSubmit = async (values: z.infer<typeof registerSchema>) => {
     try {
-      // Check if the user already exists
-      const { data: existingUsers } = await supabase
-        .from('profiles')
-        .select('email')
-        .eq('email', values.email)
-        .single();
-        
-      if (existingUsers) {
+      // Check if the user already exists by fetching authentication data
+      // This is a cleaner approach since we don't have a profiles table
+      const { data: existingAuth, error: authError } = await supabase.auth.signInWithPassword({
+        email: values.email,
+        password: "dummy-password-for-check", // This will fail if the email doesn't exist
+      });
+      
+      // If no error about invalid credentials, it means the email exists
+      if (!authError || authError.message !== "Invalid login credentials") {
         toast({
           title: "Registration Failed",
           description: "Email already registered",
@@ -78,6 +79,9 @@ export const RegisterForm = ({ onSuccess, setLoginEmail }: RegisterFormProps) =>
         return;
       }
 
+      // Track the registration in the queries table
+      await trackRegistration(values.email, values.name);
+
       // If registration was successful
       toast({
         title: "Registration Successful",
@@ -94,6 +98,23 @@ export const RegisterForm = ({ onSuccess, setLoginEmail }: RegisterFormProps) =>
         description: error.message || "An unexpected error occurred",
         variant: "destructive",
       });
+    }
+  };
+
+  // Helper function to track registration
+  const trackRegistration = async (email: string, name: string) => {
+    try {
+      await supabase.from('queries')
+        .insert({
+          query: `New user registration: ${email}`,
+          response: `User ${name} registered successfully`,
+          user_email: email,
+          user_name: name
+        })
+        .select();
+    } catch (error) {
+      console.error("Error tracking registration:", error);
+      // Non-critical error, don't block the registration process
     }
   };
 

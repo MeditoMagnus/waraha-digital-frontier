@@ -16,15 +16,21 @@ export const trackQuery = async (query: string, response: string) => {
     console.log("Tracking query for:", { userEmail, userName });
     
     // Insert the query data into Supabase
-    // In a real implementation, you would send this data to Supabase
-    // For now, we'll just log it
-    console.log("Query tracked:", {
-      query,
-      response: response.substring(0, 100) + "...",
-      email: userEmail,
-      user: userName,
-      timestamp: new Date()
-    });
+    const { data, error } = await supabase
+      .from('queries')
+      .insert({
+        query,
+        response: response.substring(0, 500) + (response.length > 500 ? "..." : ""),
+        user_email: userEmail,
+        user_name: userName,
+        timestamp: new Date().toISOString()
+      })
+      .select();
+    
+    if (error) {
+      console.error("Error inserting query:", error);
+      return false;
+    }
     
     return true;
   } catch (error) {
@@ -36,11 +42,20 @@ export const trackQuery = async (query: string, response: string) => {
 // Get statistics about queries
 export const getQueryStatistics = async () => {
   try {
-    // For a real implementation, you would query Supabase
-    // For demonstration, we'll return mock data that's consistent
+    // Get real statistics from the database
+    const { data, error } = await supabase
+      .from('queries')
+      .select('*');
+    
+    if (error) {
+      throw error;
+    }
+    
+    // Calculate statistics
     return {
-      totalQueries: 63,
-      averageLength: 432
+      totalQueries: data?.length || 0,
+      averageLength: data?.length ? 
+        Math.round(data.reduce((acc, curr) => acc + (curr.query?.length || 0), 0) / data.length) : 0
     };
   } catch (error) {
     console.error("Error getting query statistics:", error);
