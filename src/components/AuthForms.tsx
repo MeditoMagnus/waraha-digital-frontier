@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { z } from "zod";
@@ -105,7 +104,7 @@ export function LoginForm() {
   const onLoginSubmit = (values: z.infer<typeof loginSchema>) => {
     if (values.isAdmin) {
       // Admin login logic
-      if (values.email === "admin" && values.password === "22Waraha#*") {
+      if (values.email === "admin@warahagroup.com" && values.password === "22Waraha#*") {
         // Store admin session info
         localStorage.setItem("userRole", "admin");
         localStorage.setItem("userName", "Admin");
