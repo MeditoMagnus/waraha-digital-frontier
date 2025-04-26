@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
@@ -9,6 +9,9 @@ import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/com
 import FormattedResponse from "@/components/FormattedResponse";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
+import CoinWallet from '@/components/CoinWallet';
+import PurchaseCoins from '@/components/PurchaseCoins';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const PresalesConsultancy = () => {
   const [query, setQuery] = useState('');
@@ -17,12 +20,12 @@ const PresalesConsultancy = () => {
   const [activeTab, setActiveTab] = useState('query');
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [showPurchaseDialog, setShowPurchaseDialog] = useState(false);
+  const [searchParams] = useSearchParams();
   
-  // Get user information from local storage
   const userName = localStorage.getItem('userName');
   const userRole = localStorage.getItem('userRole');
   
-  // Check if user is logged in
   useEffect(() => {
     if (!userRole || userRole !== 'user') {
       toast({
@@ -46,18 +49,42 @@ const PresalesConsultancy = () => {
 
     setIsLoading(true);
     try {
+      const { data: wallet, error: walletError } = await supabase
+        .from('user_wallets')
+        .select('coin_balance')
+        .single();
+
+      if (walletError) throw walletError;
+
+      if (!wallet || wallet.coin_balance < 25) {
+        toast({
+          title: "Insufficient Coins",
+          description: "You need 25 coins to generate an AI response. Please purchase more coins.",
+          variant: "destructive",
+        });
+        setShowPurchaseDialog(true);
+        return;
+      }
+
       const { data, error } = await supabase.functions.invoke('chat-with-ai', {
         body: { query },
       });
 
       if (error) throw error;
 
+      const { error: deductError } = await supabase.rpc('deduct_coins', {
+        amount: 25,
+        description: 'AI consultation cost'
+      });
+
+      if (deductError) throw deductError;
+
       setResponse(data.response);
       setActiveTab('response');
       
       toast({
         title: "Success",
-        description: "Response generated successfully.",
+        description: "Response generated successfully. 25 coins have been deducted.",
       });
     } catch (error) {
       console.error('Error:', error);
@@ -98,6 +125,8 @@ const PresalesConsultancy = () => {
           Logout
         </Button>
       </div>
+      
+      <CoinWallet onPurchaseClick={() => setShowPurchaseDialog(true)} />
       
       <Card className="mb-8">
         <CardHeader>
@@ -157,6 +186,18 @@ const PresalesConsultancy = () => {
           </Tabs>
         </CardContent>
       </Card>
+
+      <Dialog open={showPurchaseDialog} onOpenChange={setShowPurchaseDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Purchase Coins</DialogTitle>
+            <DialogDescription>
+              Select an amount of coins to purchase. Each AI consultation costs 25 coins.
+            </DialogDescription>
+          </DialogHeader>
+          <PurchaseCoins />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
