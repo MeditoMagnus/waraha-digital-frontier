@@ -10,10 +10,6 @@ export function AuthForms() {
   const [activeTab, setActiveTab] = useState<string>("login");
   const [loginEmail, setLoginEmail] = useState("");
 
-  const handleRegisterSuccess = () => {
-    setActiveTab("login");
-  };
-
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
@@ -30,12 +26,12 @@ export function AuthForms() {
           </TabsList>
           
           <TabsContent value="login">
-            <LoginForm defaultEmail={loginEmail} />
+            <LoginForm />
           </TabsContent>
           
           <TabsContent value="register">
             <RegisterForm 
-              onSuccess={handleRegisterSuccess}
+              onSuccess={() => setActiveTab("login")}
               setLoginEmail={setLoginEmail}
             />
           </TabsContent>
