@@ -43,3 +43,4 @@ export const StudentOption = ({ control }: StudentOptionProps) => {
     </Card>
   );
 };
+

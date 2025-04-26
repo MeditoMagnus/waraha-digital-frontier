@@ -22,24 +22,29 @@ export const registerSchema = z.object({
   phoneNumber: z.string().optional(),
   designation: z.string().optional(),
   isStudent: z.boolean()
-}).refine(data => data.password === data.confirmPassword, {
+}).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords do not match",
   path: ["confirmPassword"],
-}).refine((data) => {
-  // Email validation based on student status
+}).superRefine((data, ctx) => {
+  const emailDomain = data.email.split('@')[1];
+  const consumerDomains = ['gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'aol.com', 'icloud.com'];
+  
   if (data.isStudent) {
-    // For students: Allow Gmail or educational institution emails
-    const emailDomain = data.email.split('@')[1];
-    return emailDomain === 'gmail.com' || emailDomain.endsWith('.edu');
+    if (emailDomain !== 'gmail.com' && !emailDomain.endsWith('.edu')) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Please use your Gmail or university email address (.edu domain)",
+        path: ["email"]
+      });
+    }
   } else {
-    // For non-students: Require company email (exclude common public email domains)
-    const consumerDomains = ['gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'aol.com', 'icloud.com'];
-    const domain = data.email.split('@')[1];
-    return !consumerDomains.includes(domain);
+    if (consumerDomains.includes(emailDomain)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Please use your company email address",
+        path: ["email"]
+      });
+    }
   }
-}, {
-  message: (data) => data.isStudent 
-    ? "Please use your Gmail or university email address (.edu domain)"
-    : "Please use your company email address",
-  path: ["email"]
 });
+
