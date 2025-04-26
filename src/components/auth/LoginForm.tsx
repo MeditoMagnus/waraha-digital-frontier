@@ -35,7 +35,9 @@ export const LoginForm = () => {
 
   const onSubmit = (values: z.infer<typeof loginSchema>) => {
     if (values.isAdmin) {
+      // Admin authentication
       if (values.email === "admin@warahagroup.com" && values.password === "22Waraha#*") {
+        // Store admin credentials in localStorage
         localStorage.setItem("userRole", "admin");
         localStorage.setItem("userName", "Admin");
         
@@ -43,6 +45,8 @@ export const LoginForm = () => {
           title: "Admin Login Successful",
           description: "Welcome to the admin dashboard",
         });
+        
+        // Navigate to admin dashboard
         navigate("/admin-dashboard");
       } else {
         toast({
@@ -52,6 +56,7 @@ export const LoginForm = () => {
         });
       }
     } else {
+      // Regular user authentication
       const user = MOCK_USERS.find(user => user.email === values.email);
       
       if (user && verifyPassword(values.password, user.passwordHash)) {
