@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
@@ -109,32 +108,29 @@ const AdminDashboard = () => {
       setTotalQueries(statistics.totalQueries);
       setAverageResponseLength(statistics.averageLength);
 
-      // Fetch users
-      const { data: usersData, error: usersError } = await supabase
-        .from('profiles')
-        .select('id, name:user_name, email:user_email')
-        .limit(50);
+      // Instead of direct Supabase queries, use functions.invoke for data that's not in TypeScript definitions
+      const { data: usersData, error: usersError } = await supabase.functions.invoke('get-admin-data', {
+        body: { type: 'profiles' }
+      });
 
       if (usersError) throw usersError;
 
       // Fetch query counts per user
-      const { data: queryCounts, error: countError } = await supabase
-        .from('user_query_counts')
-        .select('user_id, count')
-        .limit(50);
+      const { data: queryCounts, error: countError } = await supabase.functions.invoke('get-admin-data', {
+        body: { type: 'user_query_counts' }
+      });
 
       if (countError) throw countError;
 
       // Fetch last active dates
-      const { data: lastActiveDates, error: lastActiveError } = await supabase
-        .from('user_last_active')
-        .select('user_id, last_active')
-        .limit(50);
+      const { data: lastActiveDates, error: lastActiveError } = await supabase.functions.invoke('get-admin-data', {
+        body: { type: 'user_last_active' }
+      });
 
       if (lastActiveError) throw lastActiveError;
 
       // Combine data
-      const usersWithStats = usersData.map(user => {
+      const usersWithStats = usersData?.map(user => {
         const queryCount = queryCounts?.find(q => q.user_id === user.id)?.count || 0;
         const lastActive = lastActiveDates?.find(d => d.user_id === user.id)?.last_active || 'Never';
         
@@ -145,48 +141,43 @@ const AdminDashboard = () => {
           queries: queryCount,
           lastActive: lastActive
         };
-      });
+      }) || [];
 
       setUsers(usersWithStats);
       setFilteredUsers(usersWithStats);
 
       // Fetch queries
-      const { data: queriesData, error: queriesError } = await supabase
-        .from('queries')
-        .select('id, user_name, user_email, query_text, created_at, response_length')
-        .order('created_at', { ascending: false })
-        .limit(50);
+      const { data: queriesData, error: queriesError } = await supabase.functions.invoke('get-admin-data', {
+        body: { type: 'queries' }
+      });
 
       if (queriesError) throw queriesError;
 
-      const formattedQueries = queriesData.map(q => ({
+      const formattedQueries = queriesData?.map(q => ({
         id: q.id,
         user: q.user_name || 'Anonymous User',
         email: q.user_email || 'No Email',
         query: q.query_text,
         date: new Date(q.created_at).toISOString().split('T')[0],
         responseLength: q.response_length || 0
-      }));
+      })) || [];
 
       setQueries(formattedQueries);
       setFilteredQueries(formattedQueries);
 
       // Fetch topics
-      const { data: topicsData, error: topicsError } = await supabase
-        .from('query_topics')
-        .select('topic, count')
-        .order('count', { ascending: false })
-        .limit(5);
+      const { data: topicsData, error: topicsError } = await supabase.functions.invoke('get-admin-data', {
+        body: { type: 'query_topics' }
+      });
 
       if (topicsError) throw topicsError;
       
       setTopics(topicsData || []);
 
       // Create activity data for chart
-      const { data: activityData, error: activityError } = await supabase
-        .from('daily_query_counts')
-        .select('day_name, count')
-        .order('day_index', { ascending: true });
+      const { data: activityData, error: activityError } = await supabase.functions.invoke('get-admin-data', {
+        body: { type: 'daily_query_counts' }
+      });
 
       if (activityError) throw activityError;
 

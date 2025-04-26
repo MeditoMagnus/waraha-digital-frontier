@@ -33,7 +33,7 @@ Deno.serve(async (req) => {
     const totalQueries = queriesData?.length || 0;
     let averageLength = 0;
     
-    if (totalQueries > 0) {
+    if (totalQueries > 0 && queriesData) {
       const totalLength = queriesData.reduce((sum, query) => sum + (query.response_length || 0), 0);
       averageLength = Math.round(totalLength / totalQueries);
     }
