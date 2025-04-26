@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -17,6 +18,7 @@ import {
 import { registerSchema } from '@/utils/authUtils';
 import { supabase } from '@/integrations/supabase/client';
 import { Checkbox } from "@/components/ui/checkbox";
+import { Card } from "@/components/ui/card";
 
 interface RegisterFormProps {
   onSuccess: () => void;
@@ -101,9 +103,6 @@ export const RegisterForm = ({ onSuccess, setLoginEmail }: RegisterFormProps) =>
         }
       }
 
-      // Track the registration
-      await trackRegistration(values.email, values.name);
-
       // If registration was successful
       toast({
         title: "Registration Successful",
@@ -123,20 +122,36 @@ export const RegisterForm = ({ onSuccess, setLoginEmail }: RegisterFormProps) =>
     }
   };
 
-  // Helper function to track registration
-  const trackRegistration = async (email: string, name: string) => {
-    try {
-      await supabase.functions.invoke('track-registration', {
-        body: { email, name }
-      });
-    } catch (error) {
-      console.error("Error tracking registration:", error);
-    }
-  };
-
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        {/* Student Option Card */}
+        <Card className="p-4 border-2 border-primary/20 bg-primary/5">
+          <FormField
+            control={form.control}
+            name="isStudent"
+            render={({ field }) => (
+              <FormItem className="flex flex-col gap-2 space-y-0">
+                <div className="flex items-center gap-2">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <FormLabel className="text-lg font-semibold">
+                    I am a student looking for IT career guidance
+                  </FormLabel>
+                </div>
+                <p className="text-sm text-muted-foreground ml-6">
+                  Students get access to our upcoming resume services and career guidance.
+                  You can use your Gmail or university email to register.
+                </p>
+              </FormItem>
+            )}
+          />
+        </Card>
+
         <FormField
           control={form.control}
           name="name"
@@ -156,9 +171,16 @@ export const RegisterForm = ({ onSuccess, setLoginEmail }: RegisterFormProps) =>
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Company Email</FormLabel>
+              <FormLabel>
+                {form.getValues("isStudent") ? "Gmail or University Email" : "Company Email"}
+              </FormLabel>
               <FormControl>
-                <Input placeholder="yourname@company.com" {...field} />
+                <Input 
+                  placeholder={form.getValues("isStudent") 
+                    ? "your.name@gmail.com or your.name@university.edu" 
+                    : "your.name@company.com"} 
+                  {...field} 
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -178,6 +200,22 @@ export const RegisterForm = ({ onSuccess, setLoginEmail }: RegisterFormProps) =>
             </FormItem>
           )}
         />
+
+        {!form.getValues("isStudent") && (
+          <FormField
+            control={form.control}
+            name="designation"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Designation</FormLabel>
+                <FormControl>
+                  <Input placeholder="Software Engineer, Product Manager, etc." {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
 
         <FormField
           control={form.control}
@@ -203,43 +241,6 @@ export const RegisterForm = ({ onSuccess, setLoginEmail }: RegisterFormProps) =>
                 <Input type="password" {...field} />
               </FormControl>
               <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="designation"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Designation (Optional)</FormLabel>
-              <FormControl>
-                <Input placeholder="Software Engineer, Product Manager, etc." {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="isStudent"
-          render={({ field }) => (
-            <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 border rounded">
-              <FormControl>
-                <Checkbox
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
-              <div className="space-y-1 leading-none">
-                <FormLabel>
-                  I am a student looking for IT career guidance
-                </FormLabel>
-                <p className="text-sm text-muted-foreground">
-                  Students get access to our upcoming resume services and career guidance
-                </p>
-              </div>
             </FormItem>
           )}
         />
