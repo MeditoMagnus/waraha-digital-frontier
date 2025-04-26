@@ -19,6 +19,9 @@ import { registerSchema } from '@/utils/authUtils';
 import { supabase } from '@/integrations/supabase/client';
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card } from "@/components/ui/card";
+import { StudentOption } from './registration/StudentOption';
+import { PersonalInfoFields } from './registration/PersonalInfoFields';
+import { PasswordFields } from './registration/PasswordFields';
 
 interface RegisterFormProps {
   onSuccess: () => void;
@@ -125,126 +128,9 @@ export const RegisterForm = ({ onSuccess, setLoginEmail }: RegisterFormProps) =>
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        {/* Student Option Card */}
-        <Card className="p-4 border-2 border-primary/20 bg-primary/5">
-          <FormField
-            control={form.control}
-            name="isStudent"
-            render={({ field }) => (
-              <FormItem className="flex flex-col gap-2 space-y-0">
-                <div className="flex items-center gap-2">
-                  <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                  <FormLabel className="text-lg font-semibold">
-                    I am a student looking for IT career guidance
-                  </FormLabel>
-                </div>
-                <p className="text-sm text-muted-foreground ml-6">
-                  Students get access to our upcoming resume services and career guidance.
-                  You can use your Gmail or university email to register.
-                </p>
-              </FormItem>
-            )}
-          />
-        </Card>
-
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Full Name</FormLabel>
-              <FormControl>
-                <Input placeholder="John Smith" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>
-                {form.getValues("isStudent") ? "Gmail or University Email" : "Company Email"}
-              </FormLabel>
-              <FormControl>
-                <Input 
-                  placeholder={form.getValues("isStudent") 
-                    ? "your.name@gmail.com or your.name@university.edu" 
-                    : "your.name@company.com"} 
-                  {...field} 
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="phoneNumber"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Phone Number (Optional)</FormLabel>
-              <FormControl>
-                <Input placeholder="+1234567890" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {!form.getValues("isStudent") && (
-          <FormField
-            control={form.control}
-            name="designation"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Designation</FormLabel>
-                <FormControl>
-                  <Input placeholder="Software Engineer, Product Manager, etc." {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        )}
-
-        <FormField
-          control={form.control}
-          name="password"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Password</FormLabel>
-              <FormControl>
-                <Input type="password" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="confirmPassword"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Confirm Password</FormLabel>
-              <FormControl>
-                <Input type="password" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
+        <StudentOption control={form.control} />
+        <PersonalInfoFields control={form.control} isStudent={form.watch("isStudent")} />
+        <PasswordFields control={form.control} />
         <Button type="submit" className="w-full">Register</Button>
       </form>
     </Form>

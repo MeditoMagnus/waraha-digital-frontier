@@ -26,12 +26,13 @@ export const registerSchema = z.object({
   message: "Passwords do not match",
   path: ["confirmPassword"],
 }).refine((data) => {
+  // Email validation based on student status
   if (data.isStudent) {
-    // Allow Gmail or educational institution emails for students
+    // For students: Allow Gmail or educational institution emails
     const emailDomain = data.email.split('@')[1];
     return emailDomain === 'gmail.com' || emailDomain.endsWith('.edu');
   } else {
-    // For non-students, require company email (exclude common public email domains)
+    // For non-students: Require company email (exclude common public email domains)
     const consumerDomains = ['gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'aol.com', 'icloud.com'];
     const domain = data.email.split('@')[1];
     return !consumerDomains.includes(domain);
@@ -42,4 +43,3 @@ export const registerSchema = z.object({
     : "Please use your company email address",
   path: ["email"]
 });
-
