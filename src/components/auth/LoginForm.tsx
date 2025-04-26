@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -7,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Eye, EyeOff } from "lucide-react";
 import {
   Form,
   FormControl,
@@ -21,8 +21,8 @@ import { supabase } from '@/integrations/supabase/client';
 export const LoginForm = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [showPassword, setShowPassword] = useState(false);
   
-  // Clear any existing session data on component mount to prevent conflicts
   React.useEffect(() => {
     localStorage.removeItem('userRole');
     localStorage.removeItem('userName');
@@ -39,7 +39,6 @@ export const LoginForm = () => {
 
   const onSubmit = async (values: z.infer<typeof loginSchema>) => {
     try {
-      // Regular user authentication using Supabase
       const { data, error } = await supabase.auth.signInWithPassword({
         email: values.email,
         password: values.password,
@@ -55,7 +54,6 @@ export const LoginForm = () => {
       }
       
       if (data.user) {
-        // Set regular user role
         localStorage.setItem('userRole', 'user');
         localStorage.setItem('userEmail', data.user.email || '');
         localStorage.setItem('userName', data.user.user_metadata.name || 'User');
@@ -65,7 +63,6 @@ export const LoginForm = () => {
           description: `Welcome, ${data.user.user_metadata.name || 'User'}!`,
         });
         
-        // Use setTimeout to avoid issues with redirects
         setTimeout(() => {
           navigate('/presales-consultancy');
         }, 100);
@@ -104,7 +101,23 @@ export const LoginForm = () => {
             <FormItem>
               <FormLabel>Password</FormLabel>
               <FormControl>
-                <Input type="password" {...field} />
+                <div className="relative">
+                  <Input 
+                    type={showPassword ? "text" : "password"} 
+                    {...field} 
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>

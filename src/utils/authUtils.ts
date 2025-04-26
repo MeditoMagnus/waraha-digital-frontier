@@ -1,4 +1,3 @@
-
 import { z } from "zod";
 
 // Login schema for form validation
@@ -21,7 +20,8 @@ export const registerSchema = z.object({
   confirmPassword: z.string(),
   phoneNumber: z.string().optional(),
   designation: z.string().optional(),
-  isStudent: z.boolean()
+  isStudent: z.boolean(),
+  country: z.string().min(1, "Please select your country")
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords do not match",
   path: ["confirmPassword"],
@@ -47,4 +47,3 @@ export const registerSchema = z.object({
     }
   }
 });
-
