@@ -37,34 +37,59 @@ export const RegisterForm = ({ onSuccess, setLoginEmail }: RegisterFormProps) =>
 
   const ensureWalletCreated = async (userId: string) => {
     try {
-      // Check if wallet exists
-      const { data: existingWallet } = await supabase
-        .from('user_wallets')
-        .select('*')
-        .eq('user_id', userId)
-        .maybeSingle();
+      console.log("Creating wallet for user:", userId);
       
-      // If wallet doesn't exist, create one with 369 coins
-      if (!existingWallet) {
-        await supabase
-          .from('user_wallets')
-          .insert({ 
-            user_id: userId, 
-            coin_balance: 369 
-          });
-        
-        // Record the welcome bonus transaction
-        await supabase
-          .from('coin_transactions')
-          .insert({
-            user_id: userId,
-            amount: 369,
-            transaction_type: 'bonus',
-            description: 'Welcome bonus'
-          });
+      // First, ensure role is assigned
+      const roleToAssign = form.watch("isStudent") ? 'student' : 'user';
+      
+      await supabase
+        .from('user_roles')
+        .insert({ 
+          user_id: userId, 
+          role: roleToAssign 
+        })
+        .throwOnError();
+      
+      console.log("Role assigned successfully:", roleToAssign);
+
+      // Then create wallet with direct insert
+      const { data: wallet, error: walletError } = await supabase
+        .from('user_wallets')
+        .insert({ 
+          user_id: userId, 
+          coin_balance: 369 
+        })
+        .select()
+        .single();
+      
+      if (walletError) {
+        console.error("Wallet creation error:", walletError);
+        throw walletError;
       }
+      
+      console.log("Wallet created successfully:", wallet);
+
+      // Record the welcome bonus transaction
+      const { error: transactionError } = await supabase
+        .from('coin_transactions')
+        .insert({
+          user_id: userId,
+          amount: 369,
+          transaction_type: 'bonus',
+          description: 'Welcome bonus'
+        });
+      
+      if (transactionError) {
+        console.error("Transaction record error:", transactionError);
+        throw transactionError;
+      }
+      
+      console.log("Welcome bonus transaction recorded");
+      
+      return wallet;
     } catch (error) {
       console.error('Error ensuring wallet created:', error);
+      throw error;
     }
   };
 
@@ -111,36 +136,26 @@ export const RegisterForm = ({ onSuccess, setLoginEmail }: RegisterFormProps) =>
 
       // Ensure the user has a wallet with welcome bonus
       if (data.user) {
-        await ensureWalletCreated(data.user.id);
-
-        // Assign user role based on student status
-        const roleToAssign = values.isStudent ? 'student' : 'user';
-        const { error: roleError } = await supabase
-          .from('user_roles')
-          .insert({ 
-            user_id: data.user.id, 
-            role: roleToAssign 
+        try {
+          await ensureWalletCreated(data.user.id);
+          
+          // If registration was successful
+          toast({
+            title: "Registration Successful",
+            description: "You can now login with your credentials. You've received 369 coins as a welcome bonus!",
           });
 
-        if (roleError) {
-          console.error("Role assignment error:", roleError);
+          setLoginEmail(values.email);
+          onSuccess();
+        } catch (walletError: any) {
+          console.error("Wallet setup error:", walletError);
           toast({
-            title: "Role Assignment Failed",
-            description: "Could not assign user role",
+            title: "Registration Completed",
+            description: "Account created but there was an issue setting up your wallet. Please contact support.",
             variant: "destructive",
           });
         }
       }
-
-      // If registration was successful
-      toast({
-        title: "Registration Successful",
-        description: "You can now login with your credentials. You've received 369 coins as a welcome bonus!",
-      });
-
-      setLoginEmail(values.email);
-      onSuccess();
-
     } catch (error: any) {
       console.error("Error in registration:", error);
       toast({
