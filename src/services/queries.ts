@@ -12,16 +12,16 @@ export const trackQuery = async (query: string, response: string) => {
       return false;
     }
     
-    // Use a more explicit type assertion that bypasses TypeScript's type checking 
-    // for this specific operation
-    const { error } = await (supabase
-      .from('query_history') as any)
+    // Use generic type with any to bypass TypeScript's strict type checking
+    // This is necessary because the query_history table isn't in the generated types
+    const { error } = await supabase
+      .from('query_history' as any)
       .insert({
         user_id: user.id,
         query_text: query,
         response_text: response,
         response_length: response.length
-      });
+      } as any);
     
     if (error) {
       console.error("Error tracking query:", error);
@@ -38,10 +38,10 @@ export const trackQuery = async (query: string, response: string) => {
 // Get query statistics
 export const getQueryStatistics = async () => {
   try {
-    // Use a more explicit type assertion that bypasses TypeScript's type checking
-    // for this specific operation
-    const { data, error } = await (supabase
-      .from('query_statistics') as any)
+    // Use generic type with any to bypass TypeScript's strict type checking
+    // This is necessary because the query_statistics view isn't in the generated types
+    const { data, error } = await supabase
+      .from('query_statistics' as any)
       .select('*')
       .limit(1)
       .single();

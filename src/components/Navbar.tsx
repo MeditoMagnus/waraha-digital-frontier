@@ -1,15 +1,17 @@
 
 import React, { useState, useEffect } from 'react';
 import { Menu, X } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import type { Database } from '@/integrations/supabase/types';
+import { toast } from '@/hooks/use-toast';
 
 const Navbar: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const checkUserRole = async () => {
@@ -17,22 +19,58 @@ const Navbar: React.FC = () => {
       
       if (user) {
         setIsLoggedIn(true);
-        const { data: roles } = await supabase
+        
+        // Get the user's role from the user_roles table
+        const { data: roles, error } = await supabase
           .from('user_roles')
           .select('role')
-          .eq('user_id', user.id)
-          .single();
+          .eq('user_id', user.id);
         
-        setIsAdmin(roles?.role === 'admin');
+        if (error) {
+          console.error("Error fetching user role:", error);
+          toast({
+            title: "Error",
+            description: "Could not verify your access level",
+            variant: "destructive",
+          });
+        }
+        
+        // Check if any of the returned roles is 'admin'
+        const hasAdminRole = roles && roles.some(role => role.role === 'admin');
+        setIsAdmin(hasAdminRole);
+        
+        // Store role in localStorage for other components
+        if (hasAdminRole) {
+          localStorage.setItem('userRole', 'admin');
+        } else {
+          localStorage.setItem('userRole', 'user');
+        }
       } else {
         setIsLoggedIn(false);
         setIsAdmin(false);
+        localStorage.removeItem('userRole');
       }
     };
     
     checkUserRole();
+    
+    // Set up listener for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT') {
+        setIsLoggedIn(false);
+        setIsAdmin(false);
+        localStorage.removeItem('userRole');
+      } else if (event === 'SIGNED_IN' && session) {
+        checkUserRole();
+      }
+    });
+    
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
+  // Base navigation links
   const navLinks = [
     { 
       name: 'Home', 
@@ -41,9 +79,34 @@ const Navbar: React.FC = () => {
     },
   ];
   
+  // Add admin-specific links if user is admin
   const authLinks = isAdmin ? 
     [{ name: 'Admin Dashboard', href: '/admin-dashboard', isPageLink: true }] : 
     [];
+
+  // Add login/logout links based on authentication status
+  const userLinks = isLoggedIn ?
+    [{ name: 'Logout', href: '#', action: handleLogout, isPageLink: false }] :
+    [{ name: 'Login', href: '/login', isPageLink: true }];
+    
+  // Function to handle logout
+  async function handleLogout() {
+    try {
+      await supabase.auth.signOut();
+      toast({
+        title: "Logged out",
+        description: "You have been successfully logged out",
+      });
+      navigate('/');
+    } catch (error) {
+      console.error('Error logging out:', error);
+      toast({
+        title: "Error",
+        description: "Failed to log out",
+        variant: "destructive",
+      });
+    }
+  }
 
   useEffect(() => {
     const handleScroll = () => {
@@ -60,7 +123,20 @@ const Navbar: React.FC = () => {
     };
   }, []);
 
-  const renderNavLink = (link: { name: string; href: string; isPageLink?: boolean; icon?: any }) => {
+  const renderNavLink = (link: { name: string; href: string; isPageLink?: boolean; action?: () => void; icon?: any }) => {
+    if (link.action) {
+      return (
+        <button 
+          key={link.name} 
+          onClick={link.action}
+          className="text-white hover:text-waraha-gold transition-colors duration-300 relative after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-waraha-gold after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left flex items-center"
+        >
+          {link.icon && <link.icon className="mr-1 h-4 w-4" />}
+          {link.name}
+        </button>
+      );
+    }
+    
     if (link.isPageLink) {
       return (
         <Link 
@@ -85,6 +161,9 @@ const Navbar: React.FC = () => {
     );
   };
 
+  // Combine all links
+  const allLinks = [...navLinks, ...authLinks, ...userLinks];
+
   return (
     <nav 
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
@@ -97,8 +176,7 @@ const Navbar: React.FC = () => {
         </a>
         
         <div className="hidden md:flex space-x-8">
-          {navLinks.map((link) => renderNavLink(link))}
-          {authLinks.map((link) => renderNavLink(link))}
+          {allLinks.map((link) => renderNavLink(link))}
         </div>
         
         <button 
@@ -112,12 +190,7 @@ const Navbar: React.FC = () => {
       {isMobileMenuOpen && (
         <div className="md:hidden glassmorphism fixed top-[60px] left-0 w-full z-50">
           <div className="flex flex-col space-y-4 p-4">
-            {navLinks.map((link) => (
-              <div key={link.name} onClick={() => setIsMobileMenuOpen(false)}>
-                {renderNavLink(link)}
-              </div>
-            ))}
-            {authLinks.map((link) => (
+            {allLinks.map((link) => (
               <div key={link.name} onClick={() => setIsMobileMenuOpen(false)}>
                 {renderNavLink(link)}
               </div>
