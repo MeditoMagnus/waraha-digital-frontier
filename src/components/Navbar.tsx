@@ -1,37 +1,80 @@
+
 import React, { useState, useEffect } from 'react';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, LogOut } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from "@/hooks/use-toast";
 
 const Navbar: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userRole, setUserRole] = useState<string | null>(null);
+  const navigate = useNavigate();
+  const { toast } = useToast();
   
   // Check login status whenever component mounts
   useEffect(() => {
-    const role = localStorage.getItem('userRole');
-    setIsLoggedIn(!!role);
-    setUserRole(role);
+    const checkAuth = async () => {
+      // First check localStorage for admin
+      const storedRole = localStorage.getItem('userRole');
+      
+      if (storedRole === 'admin') {
+        setIsLoggedIn(true);
+        setUserRole('admin');
+        return;
+      }
+      
+      // Then check Supabase auth for regular users
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        setIsLoggedIn(true);
+        setUserRole('user');
+      } else {
+        setIsLoggedIn(false);
+        setUserRole(null);
+      }
+    };
+    
+    checkAuth();
+    
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (event === 'SIGNED_IN') {
+          setIsLoggedIn(true);
+          setUserRole('user');
+        } else if (event === 'SIGNED_OUT') {
+          // Only clear if not admin
+          if (localStorage.getItem('userRole') !== 'admin') {
+            setIsLoggedIn(false);
+            setUserRole(null);
+          }
+        }
+      }
+    );
+    
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
-  const navLinks = [
-    { name: 'Home', href: '#home' },
-    { name: 'About', href: '#about' },
-    { name: 'Services', href: '#services' },
-    { name: 'Why Us', href: '#why-us' },
-    { name: 'Contact', href: '#contact' },
-    { 
-      name: 'AI Consultant', 
-      href: '/login', 
-      isPageLink: true 
-    },
-  ];
-  
-  // Add admin dashboard link if user is admin
-  const authLinks = isLoggedIn && userRole === 'admin' ? 
-    [{ name: 'Admin Dashboard', href: '/admin-dashboard', isPageLink: true }] : 
-    [];
+  const handleLogout = async () => {
+    // Clear localStorage regardless of user type
+    localStorage.removeItem('userRole');
+    localStorage.removeItem('userName');
+    localStorage.removeItem('userEmail');
+    
+    // Sign out from Supabase (for regular users)
+    await supabase.auth.signOut();
+    
+    toast({
+      title: "Logged Out",
+      description: "You have been logged out successfully",
+    });
+    
+    navigate('/login');
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -48,7 +91,49 @@ const Navbar: React.FC = () => {
     };
   }, []);
 
-  const renderNavLink = (link: { name: string; href: string; isPageLink?: boolean; icon?: any }) => {
+  const navLinks = [
+    { name: 'Home', href: '#home' },
+    { name: 'About', href: '#about' },
+    { name: 'Services', href: '#services' },
+    { name: 'Why Us', href: '#why-us' },
+    { name: 'Contact', href: '#contact' },
+    { 
+      name: isLoggedIn ? 'AI Consultant' : 'AI Consultant', 
+      href: isLoggedIn && userRole === 'user' ? '/presales-consultancy' : '/login', 
+      isPageLink: true 
+    },
+  ];
+  
+  // Add admin dashboard link if user is admin
+  const authLinks = isLoggedIn ? (
+    userRole === 'admin' ? [
+      { name: 'Admin Dashboard', href: '/admin-dashboard', isPageLink: true },
+      { name: 'Logout', href: '#', isLogout: true, isPageLink: false }
+    ] : [
+      { name: 'Logout', href: '#', isLogout: true, isPageLink: false }
+    ]
+  ) : [];
+
+  const renderNavLink = (link: { 
+    name: string; 
+    href: string; 
+    isPageLink?: boolean; 
+    isLogout?: boolean; 
+    icon?: any 
+  }) => {
+    if (link.isLogout) {
+      return (
+        <button 
+          key={link.name} 
+          onClick={handleLogout}
+          className="text-white hover:text-waraha-gold transition-colors duration-300 flex items-center"
+        >
+          <LogOut className="mr-1 h-4 w-4" />
+          {link.name}
+        </button>
+      );
+    }
+    
     if (link.isPageLink) {
       return (
         <Link 

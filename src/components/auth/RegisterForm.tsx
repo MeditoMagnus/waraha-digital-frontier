@@ -3,6 +3,7 @@ import React from 'react';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,7 +15,8 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { registerSchema, MOCK_USERS, hashPassword } from '@/utils/authUtils';
+import { registerSchema } from '@/utils/authUtils';
+import { supabase } from '@/integrations/supabase/client';
 
 interface RegisterFormProps {
   onSuccess: () => void;
@@ -23,6 +25,7 @@ interface RegisterFormProps {
 
 export const RegisterForm = ({ onSuccess, setLoginEmail }: RegisterFormProps) => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   
   const form = useForm<z.infer<typeof registerSchema>>({
     resolver: zodResolver(registerSchema),
@@ -35,30 +38,63 @@ export const RegisterForm = ({ onSuccess, setLoginEmail }: RegisterFormProps) =>
     },
   });
 
-  const onSubmit = (values: z.infer<typeof registerSchema>) => {
-    if (MOCK_USERS.some(user => user.email === values.email)) {
+  const onSubmit = async (values: z.infer<typeof registerSchema>) => {
+    try {
+      // Check if the user already exists
+      const { data: existingUsers } = await supabase
+        .from('profiles')
+        .select('email')
+        .eq('email', values.email)
+        .single();
+        
+      if (existingUsers) {
+        toast({
+          title: "Registration Failed",
+          description: "Email already registered",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Register the user with Supabase Auth
+      const { data, error } = await supabase.auth.signUp({
+        email: values.email,
+        password: values.password,
+        options: {
+          data: {
+            name: values.name,
+            phone_number: values.phoneNumber || null,
+          },
+        },
+      });
+
+      if (error) {
+        console.error("Registration error:", error);
+        toast({
+          title: "Registration Failed",
+          description: error.message,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // If registration was successful
+      toast({
+        title: "Registration Successful",
+        description: "You can now login with your credentials",
+      });
+
+      setLoginEmail(values.email);
+      onSuccess();
+
+    } catch (error: any) {
+      console.error("Error in registration:", error);
       toast({
         title: "Registration Failed",
-        description: "Email already registered",
+        description: error.message || "An unexpected error occurred",
         variant: "destructive",
       });
-      return;
     }
-
-    MOCK_USERS.push({
-      email: values.email,
-      name: values.name,
-      passwordHash: hashPassword(values.password),
-      phoneNumber: values.phoneNumber,
-    });
-
-    toast({
-      title: "Registration Successful",
-      description: "You can now login with your credentials",
-    });
-
-    setLoginEmail(values.email);
-    onSuccess();
   };
 
   return (

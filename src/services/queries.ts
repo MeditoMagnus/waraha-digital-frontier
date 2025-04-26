@@ -5,27 +5,26 @@ import { toast } from "@/hooks/use-toast";
 // Track a query in the database
 export const trackQuery = async (query: string, response: string) => {
   try {
-    const user = supabase.auth.getUser();
-    const userEmail = (await user).data.user?.email || 'anonymous';
+    // First, try to get the authenticated user from Supabase
+    const { data: { user } } = await supabase.auth.getUser();
     
-    // Store query in Supabase - note: in a real implementation, you would have
-    // a table for this in Supabase, but we're just implementing the tracking function
-    // as a placeholder for now
+    // If no authenticated user, check localStorage for admin
+    const userEmail = user?.email || localStorage.getItem('userEmail') || 'anonymous';
+    const userName = user?.user_metadata?.name || localStorage.getItem('userName') || 'Anonymous User';
     
+    // Log the data for debugging
+    console.log("Tracking query for:", { userEmail, userName });
+    
+    // Insert the query data into Supabase
+    // In a real implementation, you would send this data to Supabase
+    // For now, we'll just log it
     console.log("Query tracked:", {
       query,
       response: response.substring(0, 100) + "...",
       email: userEmail,
+      user: userName,
       timestamp: new Date()
     });
-    
-    // In a real implementation, you would send this data to Supabase
-    // await supabase.from('queries').insert({
-    //   user_email: userEmail,
-    //   query_text: query,
-    //   response_length: response.length,
-    //   created_at: new Date()
-    // });
     
     return true;
   } catch (error) {
@@ -37,11 +36,11 @@ export const trackQuery = async (query: string, response: string) => {
 // Get statistics about queries
 export const getQueryStatistics = async () => {
   try {
-    // This would be implemented with actual Supabase queries in a real application
-    // For now, we'll return mock data
+    // For a real implementation, you would query Supabase
+    // For demonstration, we'll return mock data that's consistent
     return {
-      totalQueries: 0,
-      averageLength: 0
+      totalQueries: 63,
+      averageLength: 432
     };
   } catch (error) {
     console.error("Error getting query statistics:", error);

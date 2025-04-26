@@ -1,14 +1,13 @@
 
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React from 'react';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Eye, EyeOff, LogIn, UserRound, Shield } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
   FormControl,
@@ -16,14 +15,26 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from "@/components/ui/form";
-import { loginSchema, MOCK_USERS, verifyPassword } from '@/utils/authUtils';
+import { loginSchema, verifyPassword } from '@/utils/authUtils';
+import { supabase } from '@/integrations/supabase/client';
 
 export const LoginForm = () => {
-  const { toast } = useToast();
   const navigate = useNavigate();
-  const [showPassword, setShowPassword] = useState(false);
-
+  const { toast } = useToast();
+  
+  // Clear any existing session data on component mount to prevent conflicts
+  React.useEffect(() => {
+    localStorage.removeItem('userRole');
+    localStorage.removeItem('userName');
+    localStorage.removeItem('userEmail');
+  }, []);
+  
+  // Admin credentials
+  const ADMIN_EMAIL = "admin@warahagroup.com";
+  const ADMIN_PASSWORD = "22Waraha#*";
+  
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -33,44 +44,65 @@ export const LoginForm = () => {
     },
   });
 
-  const onSubmit = (values: z.infer<typeof loginSchema>) => {
-    if (values.isAdmin) {
-      if (values.email === "admin@warahagroup.com" && values.password === "22Waraha#*") {
-        localStorage.setItem("userRole", "admin");
-        localStorage.setItem("userName", "Admin");
-        
-        toast({
-          title: "Admin Login Successful",
-          description: "Welcome to the admin dashboard",
-        });
-        navigate("/admin-dashboard");
-      } else {
-        toast({
-          title: "Login Failed",
-          description: "Invalid admin credentials",
-          variant: "destructive",
-        });
-      }
-    } else {
-      const user = MOCK_USERS.find(user => user.email === values.email);
-      
-      if (user && verifyPassword(values.password, user.passwordHash)) {
-        localStorage.setItem("userRole", "user");
-        localStorage.setItem("userEmail", user.email);
-        localStorage.setItem("userName", user.name);
+  const onSubmit = async (values: z.infer<typeof loginSchema>) => {
+    try {
+      // Check if this is the admin user
+      if (values.email === ADMIN_EMAIL && values.password === ADMIN_PASSWORD) {
+        // Store admin info in localStorage
+        localStorage.setItem('userRole', 'admin');
+        localStorage.setItem('userName', 'Admin');
+        localStorage.setItem('userEmail', ADMIN_EMAIL);
         
         toast({
           title: "Login Successful",
-          description: `Welcome back, ${user.name}`,
+          description: "Welcome, Admin!",
         });
-        navigate("/presales-consultancy");
-      } else {
+        
+        // Use setTimeout to avoid issues with redirects
+        setTimeout(() => {
+          navigate('/admin-dashboard');
+        }, 100);
+        return;
+      }
+      
+      // Regular user authentication using Supabase
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: values.email,
+        password: values.password,
+      });
+      
+      if (error) {
         toast({
           title: "Login Failed",
-          description: "Invalid email or password",
+          description: error.message,
           variant: "destructive",
         });
+        return;
       }
+      
+      if (data.user) {
+        // Set regular user role
+        localStorage.setItem('userRole', 'user');
+        localStorage.setItem('userEmail', data.user.email || '');
+        localStorage.setItem('userName', data.user.user_metadata.name || 'User');
+        
+        toast({
+          title: "Login Successful",
+          description: `Welcome, ${data.user.user_metadata.name || 'User'}!`,
+        });
+        
+        // Use setTimeout to avoid issues with redirects
+        setTimeout(() => {
+          navigate('/presales-consultancy');
+        }, 100);
+      }
+    } catch (error: any) {
+      console.error("Login error:", error);
+      toast({
+        title: "Login Failed",
+        description: error.message || "An unexpected error occurred",
+        variant: "destructive",
+      });
     }
   };
 
@@ -84,16 +116,7 @@ export const LoginForm = () => {
             <FormItem>
               <FormLabel>Email</FormLabel>
               <FormControl>
-                <div className="flex items-center border rounded-md focus-within:ring-1 focus-within:ring-ring">
-                  <div className="p-2 text-muted-foreground">
-                    <UserRound size={20} />
-                  </div>
-                  <Input
-                    placeholder="yourname@company.com"
-                    className="border-0 focus-visible:ring-0"
-                    {...field}
-                  />
-                </div>
+                <Input placeholder="you@example.com" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -107,50 +130,14 @@ export const LoginForm = () => {
             <FormItem>
               <FormLabel>Password</FormLabel>
               <FormControl>
-                <div className="flex items-center border rounded-md focus-within:ring-1 focus-within:ring-ring">
-                  <Input
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Password"
-                    className="border-0 focus-visible:ring-0"
-                    {...field}
-                  />
-                  <div 
-                    className="p-2 cursor-pointer text-muted-foreground"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                  </div>
-                </div>
+                <Input type="password" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
 
-        <FormField
-          control={form.control}
-          name="isAdmin"
-          render={({ field }) => (
-            <FormItem className="flex flex-row items-center space-x-3 space-y-0">
-              <FormControl>
-                <Checkbox
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
-              <div className="space-y-1 leading-none">
-                <FormLabel className="flex items-center">
-                  <Shield className="mr-1 h-4 w-4" />
-                  Login as Admin
-                </FormLabel>
-              </div>
-            </FormItem>
-          )}
-        />
-
-        <Button type="submit" className="w-full">
-          <LogIn className="mr-2 h-4 w-4" /> Sign In
-        </Button>
+        <Button type="submit" className="w-full">Login</Button>
       </form>
     </Form>
   );
