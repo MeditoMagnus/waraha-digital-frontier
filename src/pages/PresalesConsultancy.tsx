@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -72,12 +73,27 @@ const PresalesConsultancy = () => {
 
       if (error) throw error;
 
-      const { error: deductError } = await supabase.rpc('deduct_coins', {
-        amount: 25,
-        description: 'AI consultation cost'
-      });
+      // Use a direct insert into the transactions table instead of RPC call
+      const { error: transactionError } = await supabase
+        .from('coin_transactions')
+        .insert({
+          amount: -25,
+          transaction_type: 'usage',
+          description: 'AI consultation cost'
+        });
 
-      if (deductError) throw deductError;
+      if (transactionError) throw transactionError;
+      
+      // Update the wallet directly
+      const { error: updateError } = await supabase
+        .from('user_wallets')
+        .update({ 
+          coin_balance: wallet.coin_balance - 25,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', (await supabase.auth.getUser()).data.user?.id);
+
+      if (updateError) throw updateError;
 
       setResponse(data.response);
       setActiveTab('response');
