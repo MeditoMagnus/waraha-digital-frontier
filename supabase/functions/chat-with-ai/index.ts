@@ -1,7 +1,6 @@
 
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import CryptoJS from 'npm:crypto-js';
 
 // CORS headers for browser access
 const corsHeaders = {
@@ -9,21 +8,12 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const ENCRYPTION_SECRET = 'WARAHA_SECURE_SECRET_2025';
+// Get the API key from the environment variable
+const OPENAI_API_KEY = Deno.env.get('OPEN_AI_KEY');
 
-// Decrypt the API key
-const decryptApiKey = (encryptedKey: string): string => {
-  try {
-    const bytes = CryptoJS.AES.decrypt(encryptedKey, ENCRYPTION_SECRET);
-    return bytes.toString(CryptoJS.enc.Utf8);
-  } catch (error) {
-    console.error('Decryption error:', error);
-    throw new Error('Failed to decrypt API key');
-  }
-};
-
-// The encrypted API key from your existing code
-const ENCRYPTED_API_KEY = "U2FsdGVkX1+qnQ5tZ5Z/JQ9X7YwGsDKxYqYxIdxYTVu7fGIlpM2OGnGR0xPxZdyapVqbSJBv9PxP0F2B7ugzSg9WpVafPspRCJ0I/Vb19qaaH4EwF58KWC4RHncRlvTOLsQf2W+HzUlL9GKcFuVtNg6JlBv0L7JwaKQEL2ZwPEoNPD2rrNVqLiDnfVP1pXZPE0XahoCiS4wVCZyazz3vZ2JN9eRxEqVGPTAw67KpiaiPR7ciwayLWWcAcJkQ6xX2tgCG9VbAasl9RCCEIt4P0KW+IuHMUiJHObQnGgM5PtY=";
+if (!OPENAI_API_KEY) {
+  console.error('OPEN_AI_KEY environment variable is not set');
+}
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -55,7 +45,7 @@ serve(async (req) => {
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${decryptApiKey(ENCRYPTED_API_KEY)}`,
+        'Authorization': `Bearer ${OPENAI_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
