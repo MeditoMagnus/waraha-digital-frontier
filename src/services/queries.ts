@@ -12,12 +12,14 @@ export const trackQuery = async (query: string, response: string) => {
       return false;
     }
     
-    const { error } = await supabase.from('query_history').insert({
-      user_id: user.id,
-      query_text: query,
-      response_text: response,
-      response_length: response.length
-    });
+    const { error } = await supabase
+      .from('query_history')
+      .insert({
+        user_id: user.id,
+        query_text: query,
+        response_text: response,
+        response_length: response.length
+      });
     
     if (error) {
       console.error("Error tracking query:", error);
@@ -37,7 +39,8 @@ export const getQueryStatistics = async () => {
     const { data, error } = await supabase
       .from('query_statistics')
       .select('*')
-      .limit(1);
+      .limit(1)
+      .single();
     
     if (error) {
       console.error("Error getting query statistics:", error);
@@ -48,23 +51,23 @@ export const getQueryStatistics = async () => {
       });
       
       return {
-        totalQueries: 0,
-        averageLength: 0,
-        uniqueUsers: 0
+        total_queries: 0,
+        average_length: 0,
+        unique_users: 0
       };
     }
     
-    return data[0] || {
-      totalQueries: 0,
-      averageLength: 0,
-      uniqueUsers: 0
+    return data || {
+      total_queries: 0,
+      average_length: 0,
+      unique_users: 0
     };
   } catch (error) {
     console.error("Error getting query statistics:", error);
     return {
-      totalQueries: 0,
-      averageLength: 0,
-      uniqueUsers: 0
+      total_queries: 0,
+      average_length: 0,
+      unique_users: 0
     };
   }
 }

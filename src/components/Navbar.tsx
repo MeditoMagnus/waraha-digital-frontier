@@ -1,28 +1,32 @@
+
 import React, { useState, useEffect } from 'react';
 import { Menu, X } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import type { Database } from '@/integrations/supabase/types';
 
 const Navbar: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userRole, setUserRole] = useState<string | null>(null);
-  
-  // Check login status whenever component mounts
+  const [isAdmin, setIsAdmin] = useState(false);
+
   useEffect(() => {
     const checkUserRole = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       
       if (user) {
+        setIsLoggedIn(true);
         const { data: roles } = await supabase
           .from('user_roles')
           .select('role')
           .eq('user_id', user.id)
           .single();
         
-        setIsLoggedIn(!!user);
-        setUserRole(roles?.role || null);
+        setIsAdmin(roles?.role === 'admin');
+      } else {
+        setIsLoggedIn(false);
+        setIsAdmin(false);
       }
     };
     
@@ -37,7 +41,7 @@ const Navbar: React.FC = () => {
     },
   ];
   
-  const authLinks = isLoggedIn && userRole === 'admin' ? 
+  const authLinks = isAdmin ? 
     [{ name: 'Admin Dashboard', href: '/admin-dashboard', isPageLink: true }] : 
     [];
 
