@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { countries } from "@/data/countries";
 
 // Login schema for form validation
 export const loginSchema = z.object({
@@ -26,6 +27,7 @@ export const registerSchema = z.object({
   message: "Passwords do not match",
   path: ["confirmPassword"],
 }).superRefine((data, ctx) => {
+  // Validate email domain based on user type
   const emailDomain = data.email.split('@')[1];
   const consumerDomains = ['gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'aol.com', 'icloud.com'];
   
@@ -44,6 +46,14 @@ export const registerSchema = z.object({
         message: "Please use your company email address",
         path: ["email"]
       });
+    }
+  }
+
+  // Format phone number with country code if provided
+  if (data.phoneNumber && data.country) {
+    const country = countries.find(c => c.code === data.country);
+    if (country) {
+      data.phoneNumber = `${country.dialCode}${data.phoneNumber.replace(/^0+/, '')}`;
     }
   }
 });

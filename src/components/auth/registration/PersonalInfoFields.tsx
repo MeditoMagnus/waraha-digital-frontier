@@ -3,12 +3,20 @@ import React from 'react';
 import { Control } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   FormField,
   FormItem,
   FormLabel,
   FormControl,
   FormMessage,
 } from "@/components/ui/form";
+import { countries } from "@/data/countries";
 
 interface PersonalInfoFieldsProps {
   control: Control<any>;
@@ -53,19 +61,53 @@ export const PersonalInfoFields = ({ control, isStudent }: PersonalInfoFieldsPro
         )}
       />
 
-      <FormField
-        control={control}
-        name="phoneNumber"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Phone Number (Optional)</FormLabel>
-            <FormControl>
-              <Input placeholder="+1234567890" {...field} />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <FormField
+          control={control}
+          name="country"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Country</FormLabel>
+              <Select 
+                onValueChange={field.onChange} 
+                value={field.value}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select country" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {countries.map((country) => (
+                    <SelectItem key={country.code} value={country.code}>
+                      {country.name} ({country.dialCode})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={control}
+          name="phoneNumber"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Phone Number (Optional)</FormLabel>
+              <FormControl>
+                <Input 
+                  type="tel"
+                  placeholder="505555555"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
 
       {!isStudent && (
         <FormField
@@ -85,4 +127,3 @@ export const PersonalInfoFields = ({ control, isStudent }: PersonalInfoFieldsPro
     </>
   );
 };
-
