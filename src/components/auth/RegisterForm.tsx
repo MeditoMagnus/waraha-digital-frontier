@@ -39,20 +39,48 @@ export const RegisterForm = ({ onSuccess, setLoginEmail }: RegisterFormProps) =>
     try {
       console.log("Creating wallet for user:", userId);
       
-      // First, ensure role is assigned
-      const roleToAssign = form.watch("isStudent") ? 'student' : 'user';
-      
-      await supabase
+      // First, check if role already exists to avoid duplicate errors
+      const { data: existingRole } = await supabase
         .from('user_roles')
-        .insert({ 
-          user_id: userId, 
-          role: roleToAssign 
-        })
-        .throwOnError();
-      
-      console.log("Role assigned successfully:", roleToAssign);
+        .select('*')
+        .eq('user_id', userId)
+        .maybeSingle();
 
-      // Then create wallet with direct insert
+      // Only assign role if not already assigned
+      if (!existingRole) {
+        const roleToAssign = form.watch("isStudent") ? 'student' : 'user';
+        console.log(`Assigning role ${roleToAssign} to user ${userId}`);
+        
+        const { error: roleError } = await supabase
+          .from('user_roles')
+          .insert({ 
+            user_id: userId, 
+            role: roleToAssign 
+          });
+        
+        if (roleError) {
+          console.error("Role assignment error:", roleError);
+          // Continue despite role error - we'll try to create wallet anyway
+        } else {
+          console.log("Role assigned successfully:", roleToAssign);
+        }
+      } else {
+        console.log("User already has a role assigned:", existingRole);
+      }
+      
+      // Check if wallet already exists
+      const { data: existingWallet } = await supabase
+        .from('user_wallets')
+        .select('*')
+        .eq('user_id', userId)
+        .maybeSingle();
+      
+      if (existingWallet) {
+        console.log("Wallet already exists:", existingWallet);
+        return existingWallet;
+      }
+      
+      // Create wallet directly
       const { data: wallet, error: walletError } = await supabase
         .from('user_wallets')
         .insert({ 
@@ -70,21 +98,26 @@ export const RegisterForm = ({ onSuccess, setLoginEmail }: RegisterFormProps) =>
       console.log("Wallet created successfully:", wallet);
 
       // Record the welcome bonus transaction
-      const { error: transactionError } = await supabase
-        .from('coin_transactions')
-        .insert({
-          user_id: userId,
-          amount: 369,
-          transaction_type: 'bonus',
-          description: 'Welcome bonus'
-        });
-      
-      if (transactionError) {
-        console.error("Transaction record error:", transactionError);
-        throw transactionError;
+      try {
+        const { error: transactionError } = await supabase
+          .from('coin_transactions')
+          .insert({
+            user_id: userId,
+            amount: 369,
+            transaction_type: 'bonus',
+            description: 'Welcome bonus'
+          });
+        
+        if (transactionError) {
+          console.error("Transaction record error:", transactionError);
+          // Don't throw here, we want to return the wallet even if transaction recording fails
+        } else {
+          console.log("Welcome bonus transaction recorded");
+        }
+      } catch (txError) {
+        console.error("Error recording transaction:", txError);
+        // Continue despite transaction error
       }
-      
-      console.log("Welcome bonus transaction recorded");
       
       return wallet;
     } catch (error) {
@@ -96,13 +129,13 @@ export const RegisterForm = ({ onSuccess, setLoginEmail }: RegisterFormProps) =>
   const onSubmit = async (values: z.infer<typeof registerSchema>) => {
     try {
       // Check if the user already exists
-      const { data: existingAuth, error: authError } = await supabase.auth.signInWithPassword({
+      const { data: existingUser, error: checkError } = await supabase.auth.signUp({
         email: values.email,
-        password: "dummy-password-for-check",
+        password: "checking-only",
+        options: { emailRedirectTo: window.location.origin }
       });
-      
-      // If no error about invalid credentials, it means the email exists
-      if (!authError || authError.message !== "Invalid login credentials") {
+
+      if (existingUser?.user && !existingUser.user.identities?.length) {
         toast({
           title: "Registration Failed",
           description: "Email already registered",
@@ -121,6 +154,7 @@ export const RegisterForm = ({ onSuccess, setLoginEmail }: RegisterFormProps) =>
             phone_number: values.phoneNumber || null,
             designation: values.designation || null,
           },
+          emailRedirectTo: window.location.origin
         },
       });
 
@@ -145,15 +179,27 @@ export const RegisterForm = ({ onSuccess, setLoginEmail }: RegisterFormProps) =>
             description: "You can now login with your credentials. You've received 369 coins as a welcome bonus!",
           });
 
+          // Attempt to sign in immediately after registration
+          try {
+            await supabase.auth.signInWithPassword({
+              email: values.email,
+              password: values.password
+            });
+          } catch (signInError) {
+            console.log("Auto sign-in failed, proceeding to login page:", signInError);
+          }
+
           setLoginEmail(values.email);
           onSuccess();
         } catch (walletError: any) {
           console.error("Wallet setup error:", walletError);
           toast({
             title: "Registration Completed",
-            description: "Account created but there was an issue setting up your wallet. Please contact support.",
-            variant: "destructive",
+            description: "Account created but there was an issue setting up your wallet. You can try to create a wallet later.",
           });
+          
+          setLoginEmail(values.email);
+          onSuccess();
         }
       }
     } catch (error: any) {
