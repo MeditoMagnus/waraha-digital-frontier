@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -18,7 +19,11 @@ import {
 import { loginSchema } from '@/utils/authUtils';
 import { supabase } from '@/integrations/supabase/client';
 
-export const LoginForm = () => {
+interface LoginFormProps {
+  defaultEmail?: string;
+}
+
+export const LoginForm = ({ defaultEmail = "" }: LoginFormProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
@@ -32,7 +37,7 @@ export const LoginForm = () => {
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: "",
+      email: defaultEmail,
       password: "",
     },
   });
@@ -129,3 +134,4 @@ export const LoginForm = () => {
     </Form>
   );
 };
+
