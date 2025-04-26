@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -17,6 +16,7 @@ import {
 } from "@/components/ui/form";
 import { registerSchema } from '@/utils/authUtils';
 import { supabase } from '@/integrations/supabase/client';
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface RegisterFormProps {
   onSuccess: () => void;
@@ -35,16 +35,17 @@ export const RegisterForm = ({ onSuccess, setLoginEmail }: RegisterFormProps) =>
       password: "",
       confirmPassword: "",
       phoneNumber: "",
+      designation: "",
+      isStudent: false
     },
   });
 
   const onSubmit = async (values: z.infer<typeof registerSchema>) => {
     try {
-      // Check if the user already exists by fetching authentication data
-      // This is a cleaner approach since we don't have a profiles table
+      // Check if the user already exists
       const { data: existingAuth, error: authError } = await supabase.auth.signInWithPassword({
         email: values.email,
-        password: "dummy-password-for-check", // This will fail if the email doesn't exist
+        password: "dummy-password-for-check",
       });
       
       // If no error about invalid credentials, it means the email exists
@@ -65,6 +66,7 @@ export const RegisterForm = ({ onSuccess, setLoginEmail }: RegisterFormProps) =>
           data: {
             name: values.name,
             phone_number: values.phoneNumber || null,
+            designation: values.designation || null,
           },
         },
       });
@@ -79,7 +81,27 @@ export const RegisterForm = ({ onSuccess, setLoginEmail }: RegisterFormProps) =>
         return;
       }
 
-      // Track the registration using edge function
+      // Assign user role based on student status
+      if (data.user) {
+        const roleToAssign = values.isStudent ? 'student' : 'user';
+        const { error: roleError } = await supabase
+          .from('user_roles')
+          .insert({ 
+            user_id: data.user.id, 
+            role: roleToAssign 
+          });
+
+        if (roleError) {
+          console.error("Role assignment error:", roleError);
+          toast({
+            title: "Role Assignment Failed",
+            description: "Could not assign user role",
+            variant: "destructive",
+          });
+        }
+      }
+
+      // Track the registration
       await trackRegistration(values.email, values.name);
 
       // If registration was successful
@@ -101,16 +123,14 @@ export const RegisterForm = ({ onSuccess, setLoginEmail }: RegisterFormProps) =>
     }
   };
 
-  // Helper function to track registration without using the queries table directly
+  // Helper function to track registration
   const trackRegistration = async (email: string, name: string) => {
     try {
-      // Use edge function instead of RPC
       await supabase.functions.invoke('track-registration', {
         body: { email, name }
       });
     } catch (error) {
       console.error("Error tracking registration:", error);
-      // Non-critical error, don't block the registration process
     }
   };
 
@@ -183,6 +203,43 @@ export const RegisterForm = ({ onSuccess, setLoginEmail }: RegisterFormProps) =>
                 <Input type="password" {...field} />
               </FormControl>
               <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="designation"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Designation (Optional)</FormLabel>
+              <FormControl>
+                <Input placeholder="Software Engineer, Product Manager, etc." {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="isStudent"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 border rounded">
+              <FormControl>
+                <Checkbox
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+              <div className="space-y-1 leading-none">
+                <FormLabel>
+                  I am a student looking for IT career guidance
+                </FormLabel>
+                <p className="text-sm text-muted-foreground">
+                  Students get access to our upcoming resume services and career guidance
+                </p>
+              </div>
             </FormItem>
           )}
         />
