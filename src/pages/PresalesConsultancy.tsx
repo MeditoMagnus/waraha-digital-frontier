@@ -1,10 +1,11 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { generateAIResponse } from "@/services/openai";
-import { ArrowLeft, Send, MessageSquare, Loader2 } from "lucide-react";
+import { ArrowLeft, Send, MessageSquare, Loader2, LogOut } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import FormattedResponse from "@/components/FormattedResponse";
@@ -16,6 +17,23 @@ const PresalesConsultancy = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('query');
   const { toast } = useToast();
+  const navigate = useNavigate();
+  
+  // Get user information from local storage
+  const userName = localStorage.getItem('userName');
+  const userRole = localStorage.getItem('userRole');
+  
+  // Check if user is logged in
+  useEffect(() => {
+    if (!userRole || userRole !== 'user') {
+      toast({
+        title: "Access Denied",
+        description: "Please login to access the AI consultant",
+        variant: "destructive",
+      });
+      navigate('/login');
+    }
+  }, [navigate, toast, userRole]);
 
   const handleSubmit = async () => {
     if (!query.trim()) {
@@ -32,6 +50,14 @@ const PresalesConsultancy = () => {
       const aiResponse = await generateAIResponse(query);
       setResponse(aiResponse);
       setActiveTab('response'); // Automatically switch to response tab
+      
+      // In a real app, we would save this query to a database
+      console.log("Query logged:", {
+        user: userName,
+        query: query,
+        timestamp: new Date().toISOString()
+      });
+      
       toast({
         title: "Success",
         description: "Response generated successfully.",
@@ -51,10 +77,21 @@ const PresalesConsultancy = () => {
       setIsLoading(false);
     }
   };
+  
+  const handleLogout = () => {
+    localStorage.removeItem('userRole');
+    localStorage.removeItem('userName');
+    localStorage.removeItem('userEmail');
+    toast({
+      title: "Logged Out",
+      description: "You have been logged out successfully",
+    });
+    navigate('/login');
+  };
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-3xl">
-      <div className="mb-6">
+      <div className="flex justify-between items-center mb-6">
         <Link 
           to="/" 
           className="inline-flex items-center text-sm text-muted-foreground hover:text-primary transition-colors"
@@ -62,13 +99,18 @@ const PresalesConsultancy = () => {
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Waraha Group
         </Link>
+        
+        <Button variant="ghost" onClick={handleLogout}>
+          <LogOut className="mr-2 h-4 w-4" />
+          Logout
+        </Button>
       </div>
       
       <Card className="mb-8">
         <CardHeader>
           <CardTitle className="text-4xl text-center">AI Technical Consultant</CardTitle>
           <CardDescription className="text-center">
-            Get expert technical advice on software, IT services, architecture, pricing, 
+            Welcome, {userName || 'User'}! Get expert technical advice on software, IT services, architecture, pricing, 
             configurations, or integrations - powered by advanced AI.
           </CardDescription>
         </CardHeader>

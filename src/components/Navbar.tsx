@@ -1,11 +1,20 @@
 
 import React, { useState, useEffect } from 'react';
-import { Menu, X } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Menu, X, LogIn } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 
 const Navbar: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userRole, setUserRole] = useState<string | null>(null);
+  
+  // Check login status whenever component mounts
+  useEffect(() => {
+    const role = localStorage.getItem('userRole');
+    setIsLoggedIn(!!role);
+    setUserRole(role);
+  }, []);
 
   const navLinks = [
     { name: 'Home', href: '#home' },
@@ -13,8 +22,23 @@ const Navbar: React.FC = () => {
     { name: 'Services', href: '#services' },
     { name: 'Why Us', href: '#why-us' },
     { name: 'Contact', href: '#contact' },
-    { name: 'AI Consultant', href: '/presales-consultancy', isPageLink: true },
+    { 
+      name: 'AI Consultant', 
+      href: isLoggedIn && userRole === 'user' ? '/presales-consultancy' : '/login', 
+      isPageLink: true 
+    },
   ];
+  
+  // Add login/dashboard links based on auth status
+  const authLinks = isLoggedIn ? (
+    userRole === 'admin' ? (
+      { name: 'Admin Dashboard', href: '/admin-dashboard', isPageLink: true } 
+    ) : (
+      { name: 'My Account', href: '/presales-consultancy', isPageLink: true }
+    )
+  ) : (
+    { name: 'Login', href: '/login', isPageLink: true, icon: LogIn }
+  );
 
   useEffect(() => {
     const handleScroll = () => {
@@ -31,14 +55,15 @@ const Navbar: React.FC = () => {
     };
   }, []);
 
-  const renderNavLink = (link: { name: string; href: string; isPageLink?: boolean }) => {
+  const renderNavLink = (link: { name: string; href: string; isPageLink?: boolean; icon?: any }) => {
     if (link.isPageLink) {
       return (
         <Link 
           key={link.name} 
           to={link.href}
-          className="text-white hover:text-waraha-gold transition-colors duration-300 relative after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-waraha-gold after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left"
+          className="text-white hover:text-waraha-gold transition-colors duration-300 relative after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-waraha-gold after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left flex items-center"
         >
+          {link.icon && <link.icon className="mr-1 h-4 w-4" />}
           {link.name}
         </Link>
       );
@@ -69,6 +94,7 @@ const Navbar: React.FC = () => {
         {/* Desktop Navigation */}
         <div className="hidden md:flex space-x-8">
           {navLinks.map((link) => renderNavLink(link))}
+          {renderNavLink(authLinks)}
         </div>
         
         {/* Mobile Menu Button */}
@@ -89,6 +115,9 @@ const Navbar: React.FC = () => {
                 {renderNavLink(link)}
               </div>
             ))}
+            <div onClick={() => setIsMobileMenuOpen(false)}>
+              {renderNavLink(authLinks)}
+            </div>
           </div>
         </div>
       )}
