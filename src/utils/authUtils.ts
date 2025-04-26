@@ -1,6 +1,12 @@
 
 import { z } from "zod";
 
+// Login schema for form validation
+export const loginSchema = z.object({
+  email: z.string().email("Please enter a valid email"),
+  password: z.string().min(1, "Password is required"),
+});
+
 // Updated registration schema to include designation and student status
 export const registerSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
