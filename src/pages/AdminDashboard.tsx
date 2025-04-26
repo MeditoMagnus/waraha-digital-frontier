@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { getQueryStatistics } from "@/services/queries";
 import { 
   BarChart,
   Bar,
@@ -103,102 +104,201 @@ const AdminDashboard = () => {
   const fetchData = async () => {
     setIsLoading(true);
     try {
-      // For demonstration, we're creating mock data as if it came from Supabase
-      // In a real application, this would be a real database query
-      
-      // Simulate fetching users
-      const mockUsers = [
-        { id: "1", name: "Jane Smith", email: "jane@acme.corp", queries: 15, lastActive: "2023-04-25" },
-        { id: "2", name: "John Doe", email: "john@tech.org", queries: 8, lastActive: "2023-04-24" },
-        { id: "3", name: "Alice Johnson", email: "alice@megacorp.com", queries: 23, lastActive: "2023-04-26" },
-        { id: "4", name: "Robert Chen", email: "robert@startupinc.net", queries: 5, lastActive: "2023-04-20" },
-        { id: "5", name: "Emily Davis", email: "emily@bizfirm.co", queries: 12, lastActive: "2023-04-23" }
-      ];
-      setUsers(mockUsers);
-      setFilteredUsers(mockUsers);
+      // Fetch query statistics from Supabase edge function
+      const statistics = await getQueryStatistics();
+      setTotalQueries(statistics.totalQueries);
+      setAverageResponseLength(statistics.averageLength);
 
-      // Simulate fetching queries
-      const mockQueries = [
-        { 
-          id: 1, 
-          user: "Jane Smith", 
-          email: "jane@acme.corp", 
-          query: "What are the best practices for implementing a microservices architecture?", 
-          date: "2023-04-26", 
-          responseLength: 1250 
-        },
-        { 
-          id: 2, 
-          user: "John Doe", 
-          email: "john@tech.org", 
-          query: "How should we price our new SaaS product for the enterprise market?", 
-          date: "2023-04-25", 
-          responseLength: 950 
-        },
-        { 
-          id: 3, 
-          user: "Alice Johnson", 
-          email: "alice@megacorp.com", 
-          query: "What security measures should we implement for our cloud infrastructure?", 
-          date: "2023-04-25", 
-          responseLength: 1800 
-        },
-        { 
-          id: 4, 
-          user: "Robert Chen", 
-          email: "robert@startupinc.net", 
-          query: "How can we optimize our CI/CD pipeline for faster deployments?", 
-          date: "2023-04-24", 
-          responseLength: 1100 
-        },
-        { 
-          id: 5, 
-          user: "Emily Davis", 
-          email: "emily@bizfirm.co", 
-          query: "What's the best approach for migrating our monolith to a serverless architecture?", 
-          date: "2023-04-23", 
-          responseLength: 1650 
-        }
-      ];
-      setQueries(mockQueries);
-      setFilteredQueries(mockQueries);
-      setTotalQueries(mockQueries.length);
-      
-      // Calculate average response length
-      const avgLength = Math.round(mockQueries.reduce((acc, q) => acc + q.responseLength, 0) / mockQueries.length);
-      setAverageResponseLength(avgLength);
+      // Fetch users
+      const { data: usersData, error: usersError } = await supabase
+        .from('profiles')
+        .select('id, name:user_name, email:user_email')
+        .limit(50);
 
-      // Simulate fetching topics
-      const mockTopics = [
-        { topic: "Cloud Infrastructure", count: 28 },
-        { topic: "Microservices", count: 22 },
-        { topic: "Security", count: 19 },
-        { topic: "Pricing Strategy", count: 15 },
-        { topic: "DevOps", count: 12 }
-      ];
-      setTopics(mockTopics);
+      if (usersError) throw usersError;
+
+      // Fetch query counts per user
+      const { data: queryCounts, error: countError } = await supabase
+        .from('user_query_counts')
+        .select('user_id, count')
+        .limit(50);
+
+      if (countError) throw countError;
+
+      // Fetch last active dates
+      const { data: lastActiveDates, error: lastActiveError } = await supabase
+        .from('user_last_active')
+        .select('user_id, last_active')
+        .limit(50);
+
+      if (lastActiveError) throw lastActiveError;
+
+      // Combine data
+      const usersWithStats = usersData.map(user => {
+        const queryCount = queryCounts?.find(q => q.user_id === user.id)?.count || 0;
+        const lastActive = lastActiveDates?.find(d => d.user_id === user.id)?.last_active || 'Never';
+        
+        return {
+          id: user.id,
+          name: user.name || 'Anonymous User',
+          email: user.email || 'No Email',
+          queries: queryCount,
+          lastActive: lastActive
+        };
+      });
+
+      setUsers(usersWithStats);
+      setFilteredUsers(usersWithStats);
+
+      // Fetch queries
+      const { data: queriesData, error: queriesError } = await supabase
+        .from('queries')
+        .select('id, user_name, user_email, query_text, created_at, response_length')
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      if (queriesError) throw queriesError;
+
+      const formattedQueries = queriesData.map(q => ({
+        id: q.id,
+        user: q.user_name || 'Anonymous User',
+        email: q.user_email || 'No Email',
+        query: q.query_text,
+        date: new Date(q.created_at).toISOString().split('T')[0],
+        responseLength: q.response_length || 0
+      }));
+
+      setQueries(formattedQueries);
+      setFilteredQueries(formattedQueries);
+
+      // Fetch topics
+      const { data: topicsData, error: topicsError } = await supabase
+        .from('query_topics')
+        .select('topic, count')
+        .order('count', { ascending: false })
+        .limit(5);
+
+      if (topicsError) throw topicsError;
+      
+      setTopics(topicsData || []);
 
       // Create activity data for chart
-      const activityData = [
-        { name: 'Mon', queries: 12 },
-        { name: 'Tue', queries: 19 },
-        { name: 'Wed', queries: 7 },
-        { name: 'Thu', queries: 15 },
-        { name: 'Fri', queries: 23 },
-        { name: 'Sat', queries: 8 },
-        { name: 'Sun', queries: 5 },
-      ];
-      setUserActivityData(activityData);
+      const { data: activityData, error: activityError } = await supabase
+        .from('daily_query_counts')
+        .select('day_name, count')
+        .order('day_index', { ascending: true });
+
+      if (activityError) throw activityError;
+
+      setUserActivityData(activityData || [
+        { name: 'Mon', queries: 0 },
+        { name: 'Tue', queries: 0 },
+        { name: 'Wed', queries: 0 },
+        { name: 'Thu', queries: 0 },
+        { name: 'Fri', queries: 0 },
+        { name: 'Sat', queries: 0 },
+        { name: 'Sun', queries: 0 },
+      ]);
+
     } catch (error) {
       console.error("Error fetching data:", error);
       toast({
         title: "Error",
-        description: "Failed to load dashboard data",
+        description: "Failed to load dashboard data. Using sample data instead.",
         variant: "destructive",
       });
+      // Fall back to sample data if real data can't be loaded
+      useSampleData();
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Fallback to use sample data if API calls fail
+  const useSampleData = () => {
+    // Sample users
+    const mockUsers = [
+      { id: "1", name: "Jane Smith", email: "jane@acme.corp", queries: 15, lastActive: "2023-04-25" },
+      { id: "2", name: "John Doe", email: "john@tech.org", queries: 8, lastActive: "2023-04-24" },
+      { id: "3", name: "Alice Johnson", email: "alice@megacorp.com", queries: 23, lastActive: "2023-04-26" },
+      { id: "4", name: "Robert Chen", email: "robert@startupinc.net", queries: 5, lastActive: "2023-04-20" },
+      { id: "5", name: "Emily Davis", email: "emily@bizfirm.co", queries: 12, lastActive: "2023-04-23" }
+    ];
+    setUsers(mockUsers);
+    setFilteredUsers(mockUsers);
+
+    // Sample queries
+    const mockQueries = [
+      { 
+        id: 1, 
+        user: "Jane Smith", 
+        email: "jane@acme.corp", 
+        query: "What are the best practices for implementing a microservices architecture?", 
+        date: "2023-04-26", 
+        responseLength: 1250 
+      },
+      { 
+        id: 2, 
+        user: "John Doe", 
+        email: "john@tech.org", 
+        query: "How should we price our new SaaS product for the enterprise market?", 
+        date: "2023-04-25", 
+        responseLength: 950 
+      },
+      { 
+        id: 3, 
+        user: "Alice Johnson", 
+        email: "alice@megacorp.com", 
+        query: "What security measures should we implement for our cloud infrastructure?", 
+        date: "2023-04-25", 
+        responseLength: 1800 
+      },
+      { 
+        id: 4, 
+        user: "Robert Chen", 
+        email: "robert@startupinc.net", 
+        query: "How can we optimize our CI/CD pipeline for faster deployments?", 
+        date: "2023-04-24", 
+        responseLength: 1100 
+      },
+      { 
+        id: 5, 
+        user: "Emily Davis", 
+        email: "emily@bizfirm.co", 
+        query: "What's the best approach for migrating our monolith to a serverless architecture?", 
+        date: "2023-04-23", 
+        responseLength: 1650 
+      }
+    ];
+    setQueries(mockQueries);
+    setFilteredQueries(mockQueries);
+    setTotalQueries(mockQueries.length);
+    
+    // Calculate average response length
+    const avgLength = Math.round(mockQueries.reduce((acc, q) => acc + q.responseLength, 0) / mockQueries.length);
+    setAverageResponseLength(avgLength);
+
+    // Sample topics
+    const mockTopics = [
+      { topic: "Cloud Infrastructure", count: 28 },
+      { topic: "Microservices", count: 22 },
+      { topic: "Security", count: 19 },
+      { topic: "Pricing Strategy", count: 15 },
+      { topic: "DevOps", count: 12 }
+    ];
+    setTopics(mockTopics);
+
+    // Sample activity data
+    const activityData = [
+      { name: 'Mon', queries: 12 },
+      { name: 'Tue', queries: 19 },
+      { name: 'Wed', queries: 7 },
+      { name: 'Thu', queries: 15 },
+      { name: 'Fri', queries: 23 },
+      { name: 'Sat', queries: 8 },
+      { name: 'Sun', queries: 5 },
+    ];
+    setUserActivityData(activityData);
   };
 
   // Handle search for users and queries

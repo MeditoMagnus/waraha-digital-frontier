@@ -20,22 +20,34 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Execute a direct SQL query to get query statistics
-    // This bypasses TypeScript type checking since we're using raw SQL
-    const { data, error } = await supabaseClient.rpc('get_query_statistics');
-
-    if (error) {
-      throw error;
+    // Query the database for statistics
+    const { data: queriesData, error: queriesError } = await supabaseClient
+      .from('queries')
+      .select('id, response_length');
+    
+    if (queriesError) {
+      throw queriesError;
+    }
+    
+    // Calculate statistics
+    const totalQueries = queriesData?.length || 0;
+    let averageLength = 0;
+    
+    if (totalQueries > 0) {
+      const totalLength = queriesData.reduce((sum, query) => sum + (query.response_length || 0), 0);
+      averageLength = Math.round(totalLength / totalQueries);
     }
 
     return new Response(JSON.stringify({
-      totalQueries: data.total_queries || 0,
-      averageLength: data.average_length || 0
+      totalQueries,
+      averageLength
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
     });
   } catch (error) {
+    console.error("Error in get-query-statistics:", error);
+    
     return new Response(JSON.stringify({ 
       error: error.message,
       totalQueries: 0,
