@@ -19,10 +19,19 @@ export const useProcessQuery = (onSuccess: (response: string) => void) => {
 
     setIsLoading(true);
     try {
+      // Get current user
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError || !user) {
+        throw new Error(userError?.message || "User not authenticated");
+      }
+      
+      // Get user's wallet
       const { data: wallet, error: walletError } = await supabase
         .from('user_wallets')
         .select('coin_balance')
-        .single();
+        .eq('user_id', user.id)
+        .maybeSingle();
 
       if (walletError) throw walletError;
 
@@ -40,9 +49,6 @@ export const useProcessQuery = (onSuccess: (response: string) => void) => {
       });
 
       if (error) throw error;
-
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
       
       const { error: transactionError } = await supabase
         .from('coin_transactions')

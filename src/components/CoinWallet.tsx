@@ -17,21 +17,34 @@ const CoinWallet = ({ onPurchaseClick }: CoinWalletProps) => {
   const { data: walletData, isLoading } = useQuery({
     queryKey: ['wallet'],
     queryFn: async () => {
-      const { data: wallet, error } = await supabase
-        .from('user_wallets')
-        .select('*')
-        .single();
-      
-      if (error) {
+      try {
+        // Get the current user
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        
+        if (userError || !user) {
+          throw new Error(userError?.message || "User not authenticated");
+        }
+        
+        // Query the wallet using the user ID
+        const { data, error } = await supabase
+          .from('user_wallets')
+          .select('*')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        
+        if (error) {
+          throw error;
+        }
+        
+        return data || { coin_balance: 0 };
+      } catch (error: any) {
         toast({
           title: "Error fetching wallet",
           description: error.message,
           variant: "destructive",
         });
-        return null;
+        return { coin_balance: 0 };
       }
-      
-      return wallet;
     }
   });
 
