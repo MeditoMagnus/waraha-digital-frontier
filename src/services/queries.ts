@@ -5,27 +5,24 @@ import { toast } from "@/hooks/use-toast";
 // Track a query in the database
 export const trackQuery = async (query: string, response: string) => {
   try {
-    const user = supabase.auth.getUser();
-    const userEmail = (await user).data.user?.email || 'anonymous';
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
     
-    // Store query in Supabase - note: in a real implementation, you would have
-    // a table for this in Supabase, but we're just implementing the tracking function
-    // as a placeholder for now
+    if (userError || !user) {
+      console.error("No authenticated user found", userError);
+      return false;
+    }
     
-    console.log("Query tracked:", {
-      query,
-      response: response.substring(0, 100) + "...",
-      email: userEmail,
-      timestamp: new Date()
+    const { error } = await supabase.from('query_history').insert({
+      user_id: user.id,
+      query_text: query,
+      response_text: response,
+      response_length: response.length
     });
     
-    // In a real implementation, you would send this data to Supabase
-    // await supabase.from('queries').insert({
-    //   user_email: userEmail,
-    //   query_text: query,
-    //   response_length: response.length,
-    //   created_at: new Date()
-    // });
+    if (error) {
+      console.error("Error tracking query:", error);
+      return false;
+    }
     
     return true;
   } catch (error) {
@@ -34,25 +31,40 @@ export const trackQuery = async (query: string, response: string) => {
   }
 }
 
-// Get statistics about queries
+// Get query statistics
 export const getQueryStatistics = async () => {
   try {
-    // This would be implemented with actual Supabase queries in a real application
-    // For now, we'll return mock data
-    return {
+    const { data, error } = await supabase
+      .from('query_statistics')
+      .select('*')
+      .limit(1);
+    
+    if (error) {
+      console.error("Error getting query statistics:", error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch query statistics",
+        variant: "destructive",
+      });
+      
+      return {
+        totalQueries: 0,
+        averageLength: 0,
+        uniqueUsers: 0
+      };
+    }
+    
+    return data[0] || {
       totalQueries: 0,
-      averageLength: 0
+      averageLength: 0,
+      uniqueUsers: 0
     };
   } catch (error) {
     console.error("Error getting query statistics:", error);
-    toast({
-      title: "Error",
-      description: "Failed to fetch query statistics",
-      variant: "destructive",
-    });
     return {
       totalQueries: 0,
-      averageLength: 0
+      averageLength: 0,
+      uniqueUsers: 0
     };
   }
 }

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Menu, X } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 
 const Navbar: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -10,25 +11,32 @@ const Navbar: React.FC = () => {
   
   // Check login status whenever component mounts
   useEffect(() => {
-    const role = localStorage.getItem('userRole');
-    setIsLoggedIn(!!role);
-    setUserRole(role);
+    const checkUserRole = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (user) {
+        const { data: roles } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', user.id)
+          .single();
+        
+        setIsLoggedIn(!!user);
+        setUserRole(roles?.role || null);
+      }
+    };
+    
+    checkUserRole();
   }, []);
 
   const navLinks = [
-    { name: 'Home', href: '#home' },
-    { name: 'About', href: '#about' },
-    { name: 'Services', href: '#services' },
-    { name: 'Why Us', href: '#why-us' },
-    { name: 'Contact', href: '#contact' },
     { 
-      name: 'AI Consultant', 
-      href: '/login', 
+      name: 'Home', 
+      href: '/', 
       isPageLink: true 
     },
   ];
   
-  // Add admin dashboard link if user is admin
   const authLinks = isLoggedIn && userRole === 'admin' ? 
     [{ name: 'Admin Dashboard', href: '/admin-dashboard', isPageLink: true }] : 
     [];
@@ -80,17 +88,15 @@ const Navbar: React.FC = () => {
       }`}
     >
       <div className="container mx-auto flex justify-between items-center">
-        <a href="#home" className="text-2xl font-serif font-bold text-white flex items-center">
+        <a href="/" className="text-2xl font-serif font-bold text-white flex items-center">
           <span className="text-waraha-gold">W</span>araha <span className="text-waraha-silver ml-1">Group</span>
         </a>
         
-        {/* Desktop Navigation */}
         <div className="hidden md:flex space-x-8">
           {navLinks.map((link) => renderNavLink(link))}
           {authLinks.map((link) => renderNavLink(link))}
         </div>
         
-        {/* Mobile Menu Button */}
         <button 
           className="md:hidden text-white"
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -99,7 +105,6 @@ const Navbar: React.FC = () => {
         </button>
       </div>
       
-      {/* Mobile Menu */}
       {isMobileMenuOpen && (
         <div className="md:hidden glassmorphism fixed top-[60px] left-0 w-full z-50">
           <div className="flex flex-col space-y-4 p-4">
