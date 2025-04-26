@@ -23,8 +23,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 // Mock database for demo purposes - in real app use Supabase or other backend
 const MOCK_ADMIN = {
   username: "admin",
-  // This represents a hashed password - never store plaintext passwords
-  passwordHash: "$2a$12$K8HpA3AKuLeJEBZ6qrRIEO5tn8Knv.ETRGQWIXmJEGGKzVUlQVyTO" // Hashed "22Waraha#*"
+  // Using a simple hashed version of "22Waraha#*"
+  passwordHash: "22Waraha#*-hashed"
 };
 
 const MOCK_USERS: { email: string; name: string; passwordHash: string; phoneNumber?: string }[] = [];
@@ -60,11 +60,11 @@ const registerSchema = z.object({
   path: ["confirmPassword"],
 });
 
-// Mock function to hash a password
+// Simple mock function to hash a password that works in browser
 const hashPassword = (password: string) => {
   // In a real application, use bcrypt or similar
   // This is just a simple mock for demonstration
-  return `$2a$12$${Buffer.from(password).toString('base64')}`;
+  return `${password}-hashed`;
 };
 
 // Mock function to verify a password
@@ -105,7 +105,7 @@ export function LoginForm() {
   const onLoginSubmit = (values: z.infer<typeof loginSchema>) => {
     if (values.isAdmin) {
       // Admin login logic
-      if (values.email === "admin" && verifyPassword(values.password, MOCK_ADMIN.passwordHash)) {
+      if (values.email === "admin" && values.password === "22Waraha#*") {
         // Store admin session info
         localStorage.setItem("userRole", "admin");
         localStorage.setItem("userName", "Admin");
@@ -126,7 +126,7 @@ export function LoginForm() {
       // Regular user login logic
       const user = MOCK_USERS.find(user => user.email === values.email);
       
-      if (user && verifyPassword(values.password, user.passwordHash)) {
+      if (user && hashPassword(values.password) === user.passwordHash) {
         // Store user session info
         localStorage.setItem("userRole", "user");
         localStorage.setItem("userEmail", user.email);
