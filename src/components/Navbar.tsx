@@ -1,10 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
 import { Menu, X } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import type { Database } from '@/integrations/supabase/types';
-import { toast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
 
 const Navbar: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -12,15 +10,27 @@ const Navbar: React.FC = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   useEffect(() => {
     const checkUserRole = async () => {
+      const storedRole = localStorage.getItem('userRole');
+      
+      if (storedRole === 'admin') {
+        setIsLoggedIn(true);
+        setIsAdmin(true);
+        return;
+      } else if (storedRole === 'user') {
+        setIsLoggedIn(true);
+        setIsAdmin(false);
+        return;
+      }
+      
       const { data: { user } } = await supabase.auth.getUser();
       
       if (user) {
         setIsLoggedIn(true);
         
-        // Get the user's role from the user_roles table
         const { data: roles, error } = await supabase
           .from('user_roles')
           .select('role')
@@ -35,11 +45,9 @@ const Navbar: React.FC = () => {
           });
         }
         
-        // Check if any of the returned roles is 'admin'
         const hasAdminRole = roles && roles.some(role => role.role === 'admin');
         setIsAdmin(hasAdminRole);
         
-        // Store role in localStorage for other components
         if (hasAdminRole) {
           localStorage.setItem('userRole', 'admin');
         } else {
@@ -48,13 +56,11 @@ const Navbar: React.FC = () => {
       } else {
         setIsLoggedIn(false);
         setIsAdmin(false);
-        localStorage.removeItem('userRole');
       }
     };
     
     checkUserRole();
     
-    // Set up listener for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_OUT') {
         setIsLoggedIn(false);
@@ -68,9 +74,8 @@ const Navbar: React.FC = () => {
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [toast]);
 
-  // Base navigation links
   const navLinks = [
     { 
       name: 'Home', 
@@ -79,19 +84,17 @@ const Navbar: React.FC = () => {
     },
   ];
   
-  // Add admin-specific links if user is admin
   const authLinks = isAdmin ? 
     [{ name: 'Admin Dashboard', href: '/admin-dashboard', isPageLink: true }] : 
     [];
 
-  // Add login/logout links based on authentication status
   const userLinks = isLoggedIn ?
     [{ name: 'Logout', href: '#', action: handleLogout, isPageLink: false }] :
     [{ name: 'Login', href: '/login', isPageLink: true }];
     
-  // Function to handle logout
   async function handleLogout() {
     try {
+      localStorage.clear();
       await supabase.auth.signOut();
       toast({
         title: "Logged out",
@@ -161,7 +164,6 @@ const Navbar: React.FC = () => {
     );
   };
 
-  // Combine all links
   const allLinks = [...navLinks, ...authLinks, ...userLinks];
 
   return (

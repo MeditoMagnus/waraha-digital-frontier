@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
@@ -16,12 +17,25 @@ const Login = () => {
       try {
         setIsLoading(true);
         
-        // Check if a user is logged in
+        // Check if a user is logged in via Supabase
         const { data: { user } } = await supabase.auth.getUser();
         
-        // Also check localStorage for static admin credentials
+        // Check localStorage for static admin credentials
         const userRole = localStorage.getItem('userRole');
         
+        // For admin credentials in localStorage, skip further checks and redirect immediately
+        if (userRole === 'admin') {
+          navigate('/admin-dashboard');
+          return;
+        }
+        
+        // For regular user credentials in localStorage, redirect accordingly
+        if (userRole === 'user' && !user) {
+          navigate('/presales-consultancy');
+          return;
+        }
+
+        // Only proceed with Supabase role check if we have a logged-in user
         if (user) {
           // Query the user_roles table to get the role for Supabase users
           const { data: roles, error } = await supabase
@@ -41,12 +55,6 @@ const Login = () => {
             localStorage.setItem('userRole', 'user');
             navigate('/presales-consultancy');
           }
-        } else if (userRole === 'admin') {
-          // If no Supabase user but admin is in localStorage, keep admin privileges
-          navigate('/admin-dashboard');
-        } else if (userRole === 'user') {
-          // If no Supabase user but user is in localStorage, keep user privileges
-          navigate('/presales-consultancy');
         }
       } catch (error) {
         console.error('Error checking authentication:', error);
