@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -33,6 +34,39 @@ export const RegisterForm = ({ onSuccess, setLoginEmail }: RegisterFormProps) =>
       isStudent: false
     },
   });
+
+  const ensureWalletCreated = async (userId: string) => {
+    try {
+      // Check if wallet exists
+      const { data: existingWallet } = await supabase
+        .from('user_wallets')
+        .select('*')
+        .eq('user_id', userId)
+        .maybeSingle();
+      
+      // If wallet doesn't exist, create one with 369 coins
+      if (!existingWallet) {
+        await supabase
+          .from('user_wallets')
+          .insert({ 
+            user_id: userId, 
+            coin_balance: 369 
+          });
+        
+        // Record the welcome bonus transaction
+        await supabase
+          .from('coin_transactions')
+          .insert({
+            user_id: userId,
+            amount: 369,
+            transaction_type: 'bonus',
+            description: 'Welcome bonus'
+          });
+      }
+    } catch (error) {
+      console.error('Error ensuring wallet created:', error);
+    }
+  };
 
   const onSubmit = async (values: z.infer<typeof registerSchema>) => {
     try {
@@ -75,8 +109,11 @@ export const RegisterForm = ({ onSuccess, setLoginEmail }: RegisterFormProps) =>
         return;
       }
 
-      // Assign user role based on student status
+      // Ensure the user has a wallet with welcome bonus
       if (data.user) {
+        await ensureWalletCreated(data.user.id);
+
+        // Assign user role based on student status
         const roleToAssign = values.isStudent ? 'student' : 'user';
         const { error: roleError } = await supabase
           .from('user_roles')
@@ -98,7 +135,7 @@ export const RegisterForm = ({ onSuccess, setLoginEmail }: RegisterFormProps) =>
       // If registration was successful
       toast({
         title: "Registration Successful",
-        description: "You can now login with your credentials",
+        description: "You can now login with your credentials. You've received 369 coins as a welcome bonus!",
       });
 
       setLoginEmail(values.email);
