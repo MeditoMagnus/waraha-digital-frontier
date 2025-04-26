@@ -1,11 +1,12 @@
-
 import React, { useEffect, useRef } from 'react';
 import { ArrowDown } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const HeroSection: React.FC = () => {
   const headlineRef = useRef<HTMLHeadingElement>(null);
   const subheadlineRef = useRef<HTMLParagraphElement>(null);
   const ctaRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const headline = headlineRef.current;
@@ -28,6 +29,10 @@ const HeroSection: React.FC = () => {
     if (aboutSection) {
       aboutSection.scrollIntoView({ behavior: 'smooth' });
     }
+  };
+
+  const goToAIConsultant = () => {
+    navigate('/login');
   };
 
   return (
@@ -54,7 +59,7 @@ const HeroSection: React.FC = () => {
           
           <div 
             ref={ctaRef} 
-            className="mt-8 opacity-0"
+            className="mt-8 opacity-0 flex space-x-4"
             style={{opacity: 1, transition: 'opacity 0.7s ease-out, transform 0.7s ease-out'}}
           >
             <a 
@@ -63,6 +68,12 @@ const HeroSection: React.FC = () => {
             >
               Get a Free IT Assessment
             </a>
+            <button 
+              onClick={goToAIConsultant}
+              className="glassmorphism px-8 py-4 text-white text-lg border border-waraha-silver hover:bg-waraha-silver hover:text-waraha-midnight transition-all duration-300 rounded-md inline-block"
+            >
+              Ask our AI Consultant Waraha (Pro)
+            </button>
           </div>
         </div>
         

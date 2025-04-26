@@ -98,7 +98,7 @@ const Navbar: React.FC = () => {
     { name: 'Why Us', href: '#why-us' },
     { name: 'Contact', href: '#contact' },
     { 
-      name: isLoggedIn ? 'AI Consultant' : 'AI Consultant', 
+      name: isLoggedIn ? 'AI IT Consultant 🔒' : 'AI IT Consultant 🔒', 
       href: isLoggedIn ? '/presales-consultancy' : '/login', 
       isPageLink: true 
     },
