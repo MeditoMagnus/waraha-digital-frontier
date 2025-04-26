@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Menu, X } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -14,6 +15,7 @@ const Navbar: React.FC = () => {
 
   useEffect(() => {
     const checkUserRole = async () => {
+      // First check localStorage for user role
       const storedRole = localStorage.getItem('userRole');
       
       if (storedRole === 'admin') {
@@ -26,34 +28,42 @@ const Navbar: React.FC = () => {
         return;
       }
       
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (user) {
-        setIsLoggedIn(true);
+      // If no role in localStorage, check Supabase
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
         
-        const { data: roles, error } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', user.id);
-        
-        if (error) {
-          console.error("Error fetching user role:", error);
-          toast({
-            title: "Error",
-            description: "Could not verify your access level",
-            variant: "destructive",
-          });
-        }
-        
-        const hasAdminRole = roles && roles.some(role => role.role === 'admin');
-        setIsAdmin(hasAdminRole);
-        
-        if (hasAdminRole) {
-          localStorage.setItem('userRole', 'admin');
+        if (user) {
+          setIsLoggedIn(true);
+          
+          const { data: roles, error } = await supabase
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', user.id);
+          
+          if (error) {
+            console.error("Error fetching user role:", error);
+            toast({
+              title: "Error",
+              description: "Could not verify your access level",
+              variant: "destructive",
+            });
+            return;
+          }
+          
+          const hasAdminRole = roles && roles.some(role => role.role === 'admin');
+          setIsAdmin(hasAdminRole);
+          
+          if (hasAdminRole) {
+            localStorage.setItem('userRole', 'admin');
+          } else {
+            localStorage.setItem('userRole', 'user');
+          }
         } else {
-          localStorage.setItem('userRole', 'user');
+          setIsLoggedIn(false);
+          setIsAdmin(false);
         }
-      } else {
+      } catch (error) {
+        console.error("Error checking user role:", error);
         setIsLoggedIn(false);
         setIsAdmin(false);
       }
@@ -61,6 +71,7 @@ const Navbar: React.FC = () => {
     
     checkUserRole();
     
+    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_OUT') {
         setIsLoggedIn(false);
@@ -94,8 +105,12 @@ const Navbar: React.FC = () => {
     
   async function handleLogout() {
     try {
+      // First clear localStorage
       localStorage.clear();
+      
+      // Then sign out from Supabase
       await supabase.auth.signOut();
+      
       toast({
         title: "Logged out",
         description: "You have been successfully logged out",

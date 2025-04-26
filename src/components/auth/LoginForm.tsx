@@ -49,10 +49,10 @@ export const LoginForm = () => {
           description: "Welcome to the admin dashboard",
         });
         
-        // Navigate to admin dashboard - using a small delay to let localStorage update fully
+        // Navigate to admin dashboard after a delay to ensure localStorage is set
         setTimeout(() => {
           navigate("/admin-dashboard");
-        }, 100);
+        }, 300);
       } else {
         toast({
           title: "Login Failed",
@@ -80,7 +80,7 @@ export const LoginForm = () => {
         // Using a small timeout to ensure localStorage is updated
         setTimeout(() => {
           navigate("/presales-consultancy");
-        }, 100);
+        }, 300);
       } else {
         toast({
           title: "Login Failed",

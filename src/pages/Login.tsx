@@ -17,44 +17,47 @@ const Login = () => {
       try {
         setIsLoading(true);
         
-        // Check if a user is logged in via Supabase
-        const { data: { user } } = await supabase.auth.getUser();
-        
-        // Check localStorage for static admin credentials
+        // First, check localStorage for admin credentials
         const userRole = localStorage.getItem('userRole');
         
-        // For admin credentials in localStorage, skip further checks and redirect immediately
+        // If admin role is found in localStorage, redirect immediately
         if (userRole === 'admin') {
           navigate('/admin-dashboard');
           return;
         }
         
-        // For regular user credentials in localStorage, redirect accordingly
-        if (userRole === 'user' && !user) {
+        // If user role is found in localStorage, redirect accordingly
+        if (userRole === 'user') {
           navigate('/presales-consultancy');
           return;
         }
 
-        // Only proceed with Supabase role check if we have a logged-in user
-        if (user) {
-          // Query the user_roles table to get the role for Supabase users
-          const { data: roles, error } = await supabase
-            .from('user_roles')
-            .select('role')
-            .eq('user_id', user.id);
-          
-          if (error) throw error;
-          
-          // Check if user has admin role
-          const isAdmin = roles && roles.some(role => role.role === 'admin');
-          
-          if (isAdmin) {
-            localStorage.setItem('userRole', 'admin');
-            navigate('/admin-dashboard');
-          } else {
-            localStorage.setItem('userRole', 'user');
-            navigate('/presales-consultancy');
-          }
+        // Only proceed with Supabase checks if no localStorage role exists
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        // If no user in Supabase or localStorage, stay on login page
+        if (!user) {
+          setIsLoading(false);
+          return;
+        }
+        
+        // Query the user_roles table to get the role for Supabase users
+        const { data: roles, error } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', user.id);
+        
+        if (error) throw error;
+        
+        // Check if user has admin role
+        const isAdmin = roles && roles.some(role => role.role === 'admin');
+        
+        if (isAdmin) {
+          localStorage.setItem('userRole', 'admin');
+          navigate('/admin-dashboard');
+        } else {
+          localStorage.setItem('userRole', 'user');
+          navigate('/presales-consultancy');
         }
       } catch (error) {
         console.error('Error checking authentication:', error);
@@ -63,7 +66,6 @@ const Login = () => {
           description: 'Failed to verify your account status.',
           variant: 'destructive',
         });
-      } finally {
         setIsLoading(false);
       }
     };

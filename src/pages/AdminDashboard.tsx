@@ -86,6 +86,16 @@ const AdminDashboard = () => {
   useEffect(() => {
     const checkAdminAccess = async () => {
       try {
+        // First check localStorage for admin role
+        const userRole = localStorage.getItem('userRole');
+        
+        if (userRole === 'admin') {
+          // If admin in localStorage, proceed with fetching data
+          fetchData();
+          return;
+        }
+        
+        // If not in localStorage, check Supabase
         const { data: { user } } = await supabase.auth.getUser();
         
         if (!user) {
@@ -261,8 +271,12 @@ const AdminDashboard = () => {
 
   const handleLogout = async () => {
     try {
+      // Clear localStorage first
+      localStorage.clear();
+      
+      // Then sign out from Supabase
       await supabase.auth.signOut();
-      localStorage.removeItem('userRole');
+      
       toast({
         title: "Logged Out",
         description: "You have been logged out successfully",
