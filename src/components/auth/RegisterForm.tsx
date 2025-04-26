@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -21,6 +21,7 @@ interface RegisterFormProps {
 export const RegisterForm = ({ onSuccess, setLoginEmail }: RegisterFormProps) => {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const form = useForm<z.infer<typeof registerSchema>>({
     resolver: zodResolver(registerSchema),
@@ -31,7 +32,8 @@ export const RegisterForm = ({ onSuccess, setLoginEmail }: RegisterFormProps) =>
       confirmPassword: "",
       phoneNumber: "",
       designation: "",
-      isStudent: false
+      isStudent: false,
+      country: ""
     },
   });
 
@@ -127,7 +129,11 @@ export const RegisterForm = ({ onSuccess, setLoginEmail }: RegisterFormProps) =>
   };
 
   const onSubmit = async (values: z.infer<typeof registerSchema>) => {
+    if (isSubmitting) return;
+    
     try {
+      setIsSubmitting(true);
+      
       // Check if the user already exists
       const { data: existingUser, error: checkError } = await supabase.auth.signUp({
         email: values.email,
@@ -141,6 +147,7 @@ export const RegisterForm = ({ onSuccess, setLoginEmail }: RegisterFormProps) =>
           description: "Email already registered",
           variant: "destructive",
         });
+        setIsSubmitting(false);
         return;
       }
 
@@ -160,11 +167,23 @@ export const RegisterForm = ({ onSuccess, setLoginEmail }: RegisterFormProps) =>
 
       if (error) {
         console.error("Registration error:", error);
-        toast({
-          title: "Registration Failed",
-          description: error.message,
-          variant: "destructive",
-        });
+        
+        // Handle rate limiting error
+        if (error.code === 'over_email_send_rate_limit') {
+          toast({
+            title: "Registration Paused",
+            description: "Too many attempts. Please wait about a minute before trying again.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Registration Failed",
+            description: error.message,
+            variant: "destructive",
+          });
+        }
+        
+        setIsSubmitting(false);
         return;
       }
 
@@ -209,6 +228,8 @@ export const RegisterForm = ({ onSuccess, setLoginEmail }: RegisterFormProps) =>
         description: error.message || "An unexpected error occurred",
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -218,7 +239,9 @@ export const RegisterForm = ({ onSuccess, setLoginEmail }: RegisterFormProps) =>
         <StudentOption control={form.control} />
         <PersonalInfoFields control={form.control} isStudent={form.watch("isStudent")} />
         <PasswordFields control={form.control} />
-        <Button type="submit" className="w-full">Register</Button>
+        <Button type="submit" className="w-full" disabled={isSubmitting}>
+          {isSubmitting ? "Registering..." : "Register"}
+        </Button>
       </form>
     </Form>
   );
