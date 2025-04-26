@@ -1,6 +1,7 @@
 
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { trackQuery } from "./queries";
 
 export const generateAIResponse = async (query: string): Promise<string> => {
   try {
@@ -16,6 +17,9 @@ export const generateAIResponse = async (query: string): Promise<string> => {
     if (!data || !data.response) {
       throw new Error('No response received from AI');
     }
+
+    // Track this query for analytics
+    await trackQuery(query, data.response);
 
     return data.response;
   } catch (error) {
