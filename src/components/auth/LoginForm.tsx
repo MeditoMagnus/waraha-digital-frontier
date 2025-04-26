@@ -4,7 +4,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useNavigate } from "react-router-dom";
-import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,9 +14,8 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-  FormDescription,
 } from "@/components/ui/form";
-import { loginSchema, verifyPassword } from '@/utils/authUtils';
+import { loginSchema } from '@/utils/authUtils';
 import { supabase } from '@/integrations/supabase/client';
 
 export const LoginForm = () => {
@@ -31,40 +29,16 @@ export const LoginForm = () => {
     localStorage.removeItem('userEmail');
   }, []);
   
-  // Admin credentials
-  const ADMIN_EMAIL = "admin@warahagroup.com";
-  const ADMIN_PASSWORD = "22Waraha#*";
-  
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
       email: "",
       password: "",
-      isAdmin: false,
     },
   });
 
   const onSubmit = async (values: z.infer<typeof loginSchema>) => {
     try {
-      // Check if this is the admin user
-      if (values.email === ADMIN_EMAIL && values.password === ADMIN_PASSWORD) {
-        // Store admin info in localStorage
-        localStorage.setItem('userRole', 'admin');
-        localStorage.setItem('userName', 'Admin');
-        localStorage.setItem('userEmail', ADMIN_EMAIL);
-        
-        toast({
-          title: "Login Successful",
-          description: "Welcome, Admin!",
-        });
-        
-        // Use setTimeout to avoid issues with redirects
-        setTimeout(() => {
-          navigate('/admin-dashboard');
-        }, 100);
-        return;
-      }
-      
       // Regular user authentication using Supabase
       const { data, error } = await supabase.auth.signInWithPassword({
         email: values.email,

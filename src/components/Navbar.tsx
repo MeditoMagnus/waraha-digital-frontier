@@ -13,30 +13,18 @@ const Navbar: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userRole, setUserRole] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
   
   // Check login status whenever component mounts
   useEffect(() => {
     const checkAuth = async () => {
-      // First check localStorage for admin
-      const storedRole = localStorage.getItem('userRole');
-      
-      if (storedRole === 'admin') {
-        setIsLoggedIn(true);
-        setUserRole('admin');
-        return;
-      }
-      
-      // Then check Supabase auth for regular users
+      // Check Supabase auth for users
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
         setIsLoggedIn(true);
-        setUserRole('user');
       } else {
         setIsLoggedIn(false);
-        setUserRole(null);
       }
     };
     
@@ -47,13 +35,8 @@ const Navbar: React.FC = () => {
       (event, session) => {
         if (event === 'SIGNED_IN') {
           setIsLoggedIn(true);
-          setUserRole('user');
         } else if (event === 'SIGNED_OUT') {
-          // Only clear if not admin
-          if (localStorage.getItem('userRole') !== 'admin') {
-            setIsLoggedIn(false);
-            setUserRole(null);
-          }
+          setIsLoggedIn(false);
         }
       }
     );
@@ -95,19 +78,14 @@ const Navbar: React.FC = () => {
     { name: 'Contact', href: '#contact' },
     { 
       name: isLoggedIn ? 'AI Consultant' : 'AI Consultant', 
-      href: isLoggedIn && userRole === 'user' ? '/presales-consultancy' : '/login', 
+      href: isLoggedIn ? '/presales-consultancy' : '/login', 
       isPageLink: true 
     },
   ];
   
-  const authLinks: NavLinkType[] = isLoggedIn ? (
-    userRole === 'admin' ? [
-      { name: 'Admin Dashboard', href: '/admin-dashboard', isPageLink: true },
-      { name: 'Logout', href: '#', isLogout: true, icon: LogOut, onClick: handleLogout }
-    ] : [
-      { name: 'Logout', href: '#', isLogout: true, icon: LogOut, onClick: handleLogout }
-    ]
-  ) : [];
+  const authLinks: NavLinkType[] = isLoggedIn ? [
+    { name: 'Logout', href: '#', isLogout: true, icon: LogOut, onClick: handleLogout }
+  ] : [];
 
   return (
     <nav 

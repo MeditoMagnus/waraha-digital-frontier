@@ -10,14 +10,7 @@ const Login = () => {
   const navigate = useNavigate();
   
   useEffect(() => {
-    // First check localStorage for admin role
-    const userRole = localStorage.getItem('userRole');
-    if (userRole === 'admin') {
-      navigate('/admin-dashboard');
-      return;
-    }
-    
-    // Then check Supabase auth session for regular users
+    // Check Supabase auth session for users
     const checkAuthSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {

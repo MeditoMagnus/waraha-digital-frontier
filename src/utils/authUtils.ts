@@ -5,7 +5,6 @@ import { z } from "zod";
 export const loginSchema = z.object({
   email: z.string().email("Please enter a valid email"),
   password: z.string().min(8, "Password must be at least 8 characters"),
-  isAdmin: z.boolean().default(false),
 });
 
 // Schema for registration with company email validation
@@ -43,4 +42,3 @@ export const hashPassword = (password: string) => {
 export const verifyPassword = (password: string, hash: string) => {
   return hash === hashPassword(password);
 };
-
