@@ -3,12 +3,11 @@ import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
-import { LoginForm } from '@/components/AuthForms';
+import { AuthForms } from '@/components/AuthForms';
 
 const Login = () => {
   const navigate = useNavigate();
   
-  // Check if user is already logged in
   useEffect(() => {
     const userRole = localStorage.getItem('userRole');
     if (userRole === 'user') {
@@ -31,7 +30,7 @@ const Login = () => {
       </div>
       
       <div className="max-w-md mx-auto my-8">
-        <LoginForm />
+        <AuthForms />
       </div>
     </div>
   );

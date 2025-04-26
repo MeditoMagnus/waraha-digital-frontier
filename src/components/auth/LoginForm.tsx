@@ -17,7 +17,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { loginSchema, MOCK_USERS, hashPassword } from '@/utils/authUtils';
+import { loginSchema, MOCK_USERS, verifyPassword } from '@/utils/authUtils';
 
 export const LoginForm = () => {
   const { toast } = useToast();
@@ -54,7 +54,7 @@ export const LoginForm = () => {
     } else {
       const user = MOCK_USERS.find(user => user.email === values.email);
       
-      if (user && hashPassword(values.password) === user.passwordHash) {
+      if (user && verifyPassword(values.password, user.passwordHash)) {
         localStorage.setItem("userRole", "user");
         localStorage.setItem("userEmail", user.email);
         localStorage.setItem("userName", user.name);
