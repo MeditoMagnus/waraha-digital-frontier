@@ -1,4 +1,3 @@
-
 // Follow this setup guide to integrate the Deno SDK: https://deno.land/manual/examples/supabase
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0';
 
@@ -7,7 +6,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Sample data to use when tables don't exist
+// Sample data to use when tables don't exist or encounter errors
 const sampleData = {
   profiles: [
     { id: "1", name: "Jane Smith", email: "jane@acme.corp" },
@@ -98,35 +97,28 @@ Deno.serve(async (req) => {
 
   try {
     const supabaseClient = createClient(
-      // Get these from environment variables
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
     const { type } = await req.json();
 
-    let data;
+    console.log(`Fetching data for type: ${type}`);
 
-    // Check if requested table exists
     const { data: tableExists, error: checkError } = await supabaseClient.rpc(
-      'check_table_exists',
-      { table_name: type === 'daily_query_counts' ? 'daily_query_counts' : 
-                   type === 'query_topics' ? 'query_topics' : 
-                   type === 'queries' ? 'queries' :
-                   type === 'user_query_counts' ? 'user_query_counts' :
-                   type === 'user_last_active' ? 'user_last_active' : 'profiles' }
+      'check_table_exists', 
+      { table_name: type }
     );
     
     if (checkError || !tableExists) {
-      console.log(`Table for type ${type} doesn't exist or error checking: ${checkError?.message || 'No table'}`);
-      // Return sample data if the table doesn't exist
+      console.warn(`Table for type ${type} not found or error checking: ${checkError?.message || 'No table'}`);
       return new Response(JSON.stringify(sampleData[type] || []), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200,
       });
     }
 
-    // If table exists, try to fetch actual data
+    let data;
     try {
       switch (type) {
         case 'profiles':
@@ -176,9 +168,8 @@ Deno.serve(async (req) => {
         default:
           throw new Error(`Unknown data type: ${type}`);
       }
-    } catch (error) {
-      console.error(`Error fetching data for ${type}:`, error);
-      // Return sample data on error
+    } catch (fetchError) {
+      console.error(`Error fetching data for ${type}:`, fetchError);
       return new Response(JSON.stringify(sampleData[type] || []), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200,
@@ -198,18 +189,9 @@ Deno.serve(async (req) => {
       status: 200,
     });
   } catch (error) {
-    console.error(`Error in get-admin-data (${error.message}):`, error);
+    console.error(`Unexpected error in get-admin-data (${error.message}):`, error);
     
-    // Get the appropriate sample data based on the requested type
-    let sampleResult = [];
-    try {
-      const { type } = await req.json();
-      sampleResult = sampleData[type] || [];
-    } catch (jsonError) {
-      console.error("Error parsing JSON in error handler:", jsonError);
-    }
-    
-    return new Response(JSON.stringify(sampleResult), {
+    return new Response(JSON.stringify(sampleData), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
     });
