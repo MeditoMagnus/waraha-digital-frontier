@@ -1,9 +1,13 @@
 
 import React, { useState, useEffect } from 'react';
 import { Menu, X, LogOut } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from "@/hooks/use-toast";
+import { BrandLogo } from './navbar/BrandLogo';
+import { DesktopNav } from './navbar/DesktopNav';
+import { MobileMenu } from './navbar/MobileMenu';
+import { NavLinkType } from './navbar/types';
 
 const Navbar: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -59,13 +63,20 @@ const Navbar: React.FC = () => {
     };
   }, []);
 
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   const handleLogout = async () => {
-    // Clear localStorage regardless of user type
     localStorage.removeItem('userRole');
     localStorage.removeItem('userName');
     localStorage.removeItem('userEmail');
     
-    // Sign out from Supabase (for regular users)
     await supabase.auth.signOut();
     
     toast({
@@ -76,22 +87,7 @@ const Navbar: React.FC = () => {
     navigate('/login');
   };
 
-  useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 20) {
-        setIsScrolled(true);
-      } else {
-        setIsScrolled(false);
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, []);
-
-  const navLinks = [
+  const navLinks: NavLinkType[] = [
     { name: 'Home', href: '#home' },
     { name: 'About', href: '#about' },
     { name: 'Services', href: '#services' },
@@ -104,59 +100,14 @@ const Navbar: React.FC = () => {
     },
   ];
   
-  // Add admin dashboard link if user is admin
-  const authLinks = isLoggedIn ? (
+  const authLinks: NavLinkType[] = isLoggedIn ? (
     userRole === 'admin' ? [
       { name: 'Admin Dashboard', href: '/admin-dashboard', isPageLink: true },
-      { name: 'Logout', href: '#', isLogout: true, isPageLink: false }
+      { name: 'Logout', href: '#', isLogout: true, icon: LogOut, onClick: handleLogout }
     ] : [
-      { name: 'Logout', href: '#', isLogout: true, isPageLink: false }
+      { name: 'Logout', href: '#', isLogout: true, icon: LogOut, onClick: handleLogout }
     ]
   ) : [];
-
-  const renderNavLink = (link: { 
-    name: string; 
-    href: string; 
-    isPageLink?: boolean; 
-    isLogout?: boolean; 
-    icon?: any 
-  }) => {
-    if (link.isLogout) {
-      return (
-        <button 
-          key={link.name} 
-          onClick={handleLogout}
-          className="text-white hover:text-waraha-gold transition-colors duration-300 flex items-center"
-        >
-          <LogOut className="mr-1 h-4 w-4" />
-          {link.name}
-        </button>
-      );
-    }
-    
-    if (link.isPageLink) {
-      return (
-        <Link 
-          key={link.name} 
-          to={link.href}
-          className="text-white hover:text-waraha-gold transition-colors duration-300 relative after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-waraha-gold after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left flex items-center"
-        >
-          {link.icon && <link.icon className="mr-1 h-4 w-4" />}
-          {link.name}
-        </Link>
-      );
-    }
-    
-    return (
-      <a 
-        key={link.name} 
-        href={link.href}
-        className="text-white hover:text-waraha-gold transition-colors duration-300 relative after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-waraha-gold after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left"
-      >
-        {link.name}
-      </a>
-    );
-  };
 
   return (
     <nav 
@@ -165,17 +116,10 @@ const Navbar: React.FC = () => {
       }`}
     >
       <div className="container mx-auto flex justify-between items-center">
-        <a href="#home" className="text-2xl font-serif font-bold text-white flex items-center">
-          <span className="text-waraha-gold">W</span>araha <span className="text-waraha-silver ml-1">Group</span>
-        </a>
+        <BrandLogo />
         
-        {/* Desktop Navigation */}
-        <div className="hidden md:flex space-x-8">
-          {navLinks.map((link) => renderNavLink(link))}
-          {authLinks.map((link) => renderNavLink(link))}
-        </div>
+        <DesktopNav links={navLinks} authLinks={authLinks} />
         
-        {/* Mobile Menu Button */}
         <button 
           className="md:hidden text-white"
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -184,23 +128,12 @@ const Navbar: React.FC = () => {
         </button>
       </div>
       
-      {/* Mobile Menu */}
-      {isMobileMenuOpen && (
-        <div className="md:hidden glassmorphism fixed top-[60px] left-0 w-full z-50">
-          <div className="flex flex-col space-y-4 p-4">
-            {navLinks.map((link) => (
-              <div key={link.name} onClick={() => setIsMobileMenuOpen(false)}>
-                {renderNavLink(link)}
-              </div>
-            ))}
-            {authLinks.map((link) => (
-              <div key={link.name} onClick={() => setIsMobileMenuOpen(false)}>
-                {renderNavLink(link)}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      <MobileMenu 
+        isOpen={isMobileMenuOpen}
+        links={navLinks}
+        authLinks={authLinks}
+        onClose={() => setIsMobileMenuOpen(false)}
+      />
     </nav>
   );
 };
