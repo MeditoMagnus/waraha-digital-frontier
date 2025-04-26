@@ -8,6 +8,7 @@ import { Form } from "@/components/ui/form";
 import { LoginAlerts } from './login/LoginAlerts';
 import { LoginFormFields } from './login/LoginFormFields';
 import { useLogin } from '@/hooks/useLogin';
+import { z } from "zod";
 
 interface LoginFormProps {
   defaultEmail?: string;
@@ -16,7 +17,7 @@ interface LoginFormProps {
 export const LoginForm = ({ defaultEmail = "" }: LoginFormProps) => {
   const { handleLogin, isLoading, loginError, setLoginError } = useLogin();
   
-  const form = useForm({
+  const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
       email: defaultEmail,
