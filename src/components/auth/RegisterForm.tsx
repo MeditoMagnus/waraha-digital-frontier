@@ -79,7 +79,7 @@ export const RegisterForm = ({ onSuccess, setLoginEmail }: RegisterFormProps) =>
         return;
       }
 
-      // Track the registration using direct SQL (due to type issues)
+      // Track the registration using edge function
       await trackRegistration(values.email, values.name);
 
       // If registration was successful
@@ -104,10 +104,9 @@ export const RegisterForm = ({ onSuccess, setLoginEmail }: RegisterFormProps) =>
   // Helper function to track registration without using the queries table directly
   const trackRegistration = async (email: string, name: string) => {
     try {
-      // Use supabase.rpc to call a server-side function instead of direct table access
-      await supabase.rpc('track_registration', {
-        email_param: email,
-        name_param: name
+      // Use edge function instead of RPC
+      await supabase.functions.invoke('track-registration', {
+        body: { email, name }
       });
     } catch (error) {
       console.error("Error tracking registration:", error);

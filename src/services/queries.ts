@@ -16,11 +16,13 @@ export const trackQuery = async (query: string, response: string) => {
     console.log("Tracking query for:", { userEmail, userName });
     
     // Use raw SQL insert since the queries table isn't defined in the TypeScript schema
-    const { error } = await supabase.rpc('insert_query', {
-      query_text: query,
-      response_text: response.substring(0, 500) + (response.length > 500 ? "..." : ""),
-      user_email_param: userEmail,
-      user_name_param: userName
+    const { error } = await supabase.functions.invoke('track-query', {
+      body: {
+        queryText: query,
+        responseText: response.substring(0, 500) + (response.length > 500 ? "..." : ""),
+        userEmail: userEmail,
+        userName: userName
+      }
     });
     
     if (error) {
@@ -39,22 +41,15 @@ export const trackQuery = async (query: string, response: string) => {
 export const getQueryStatistics = async () => {
   try {
     // Use raw SQL query since the queries table isn't defined in the TypeScript schema
-    const { data, error } = await supabase.rpc('get_query_statistics');
+    const { data, error } = await supabase.functions.invoke('get-query-statistics');
     
     if (error) {
       throw error;
     }
     
-    if (data) {
-      return {
-        totalQueries: data.total_queries || 0,
-        averageLength: data.average_length || 0
-      };
-    }
-    
     return {
-      totalQueries: 0,
-      averageLength: 0
+      totalQueries: data?.totalQueries || 0,
+      averageLength: data?.averageLength || 0
     };
   } catch (error) {
     console.error("Error getting query statistics:", error);
