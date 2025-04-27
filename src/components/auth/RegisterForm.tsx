@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -11,6 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { StudentOption } from './registration/StudentOption';
 import { PersonalInfoFields } from './registration/PersonalInfoFields';
 import { PasswordFields } from './registration/PasswordFields';
+import { countries } from '@/data/countries';
 
 interface RegisterFormProps {
   onSuccess: () => void;
@@ -30,12 +32,22 @@ export const RegisterForm = ({ onSuccess, setLoginEmail }: RegisterFormProps) =>
       confirmPassword: "",
       phoneNumber: "",
       designation: "",
-      isStudent: false
+      isStudent: false,
+      country: ""
     },
   });
 
   const onSubmit = async (values: z.infer<typeof registerSchema>) => {
     try {
+      // Format phone number with country code if provided
+      let formattedPhoneNumber = values.phoneNumber;
+      if (values.phoneNumber && values.country) {
+        const country = countries.find(c => c.code === values.country);
+        if (country) {
+          formattedPhoneNumber = `${country.dialCode}${values.phoneNumber.replace(/^0+/, '')}`;
+        }
+      }
+
       // Check if the user already exists
       const { data: existingAuth, error: authError } = await supabase.auth.signInWithPassword({
         email: values.email,
@@ -59,7 +71,7 @@ export const RegisterForm = ({ onSuccess, setLoginEmail }: RegisterFormProps) =>
         options: {
           data: {
             name: values.name,
-            phone_number: values.phoneNumber || null,
+            phone_number: formattedPhoneNumber || null,
             designation: values.designation || null,
           },
         },
@@ -92,6 +104,27 @@ export const RegisterForm = ({ onSuccess, setLoginEmail }: RegisterFormProps) =>
             description: "Could not assign user role",
             variant: "destructive",
           });
+        }
+        
+        // Also track registration in Edge Function for analytics
+        try {
+          const response = await fetch(`${supabase.supabaseUrl}/functions/v1/track-registration`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${supabase.supabaseKey}`
+            },
+            body: JSON.stringify({
+              email: values.email,
+              name: values.name
+            })
+          });
+          
+          if (!response.ok) {
+            console.warn('Failed to track registration:', await response.text());
+          }
+        } catch (trackError) {
+          console.warn('Error tracking registration:', trackError);
         }
       }
 

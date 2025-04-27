@@ -1,3 +1,4 @@
+
 import { z } from "zod";
 import { countries } from "@/data/countries";
 
@@ -46,14 +47,6 @@ export const registerSchema = z.object({
         message: "Please use your company email address",
         path: ["email"]
       });
-    }
-  }
-
-  // Format phone number with country code if provided
-  if (data.phoneNumber && data.country) {
-    const country = countries.find(c => c.code === data.country);
-    if (country) {
-      data.phoneNumber = `${country.dialCode}${data.phoneNumber.replace(/^0+/, '')}`;
     }
   }
 });

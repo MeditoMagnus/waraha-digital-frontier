@@ -33,6 +33,34 @@ Deno.serve(async (req) => {
       throw error;
     }
 
+    // Let's also make sure user profile data is synchronized
+    // Get the user ID from the email
+    const { data: userData, error: userError } = await supabaseClient.auth.admin
+      .listUsers({
+        filter: {
+          email: email
+        }
+      });
+    
+    if (userError || !userData || !userData.users || userData.users.length === 0) {
+      throw userError || new Error("User not found");
+    }
+    
+    const userId = userData.users[0].id;
+    
+    // Update the profiles table with user data including name
+    const { error: profileError } = await supabaseClient
+      .from('profiles')
+      .upsert({
+        id: userId,
+        designation: userData.users[0].user_metadata?.designation || null,
+        updated_at: new Date().toISOString()
+      });
+
+    if (profileError) {
+      console.error("Profile update error:", profileError);
+    }
+
     return new Response(JSON.stringify({ success: true }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
