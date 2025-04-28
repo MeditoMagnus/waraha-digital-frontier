@@ -44,33 +44,21 @@ export const useProcessQuery = (onSuccess: (response: string) => void) => {
         return;
       }
 
+      // Get response from AI
       const { data, error } = await supabase.functions.invoke('chat-with-ai', {
         body: { query },
       });
 
       if (error) throw error;
       
-      const { error: transactionError } = await supabase
-        .from('coin_transactions')
-        .insert({
-          user_id: user.id,
-          amount: -25,
-          transaction_type: 'usage',
-          description: 'AI consultation cost'
-        });
+      // Use the secure deduct_coins function to deduct coins and record the transaction
+      const { error: deductError } = await supabase.rpc('deduct_coins', {
+        amount: 25, 
+        description: 'AI consultation cost'
+      });
 
-      if (transactionError) throw transactionError;
+      if (deductError) throw deductError;
       
-      const { error: updateError } = await supabase
-        .from('user_wallets')
-        .update({ 
-          coin_balance: wallet.coin_balance - 25,
-          updated_at: new Date().toISOString()
-        })
-        .eq('user_id', user.id);
-
-      if (updateError) throw updateError;
-
       onSuccess(data.response);
       
       toast({
