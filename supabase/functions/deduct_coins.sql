@@ -1,4 +1,8 @@
 
+-- This function is no longer being used as we've implemented
+-- the coin deduction logic directly in the useCoinTransaction hook
+-- for better error handling and transaction management.
+
 CREATE OR REPLACE FUNCTION public.deduct_coins(amount INTEGER, description TEXT)
 RETURNS boolean
 LANGUAGE plpgsql

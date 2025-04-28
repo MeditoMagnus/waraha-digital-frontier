@@ -51,10 +51,14 @@ export const useCoinTransaction = () => {
         .update({ coin_balance: newBalance })
         .eq('user_id', user.id)
         .select('coin_balance')
-        .single();
+        .maybeSingle();
       
       if (updateError) {
         throw updateError;
+      }
+      
+      if (!updatedWallet) {
+        throw new Error("Failed to update wallet balance");
       }
       
       // Record transaction

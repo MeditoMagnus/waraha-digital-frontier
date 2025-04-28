@@ -32,9 +32,6 @@ const QueryForm = ({ onQuerySubmit }: QueryFormProps) => {
     setIsLoading(true);
     
     try {
-      // Get latest wallet data before proceeding
-      await queryClient.invalidateQueries({ queryKey: ['wallet'] });
-      
       // Check if user is authenticated
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
@@ -43,16 +40,23 @@ const QueryForm = ({ onQuerySubmit }: QueryFormProps) => {
           description: "Please log in to use the AI consultant.",
           variant: "destructive",
         });
+        setIsLoading(false);
         return;
       }
       
+      // Force refresh wallet data before proceeding
+      await queryClient.invalidateQueries({ queryKey: ['wallet'] });
+      
       // Get user's wallet
       const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error("User not authenticated");
+      }
       
       const { data: wallet, error: walletError } = await supabase
         .from('user_wallets')
         .select('coin_balance')
-        .eq('user_id', user?.id)
+        .eq('user_id', user.id)
         .maybeSingle();
 
       if (walletError) throw walletError;
@@ -63,44 +67,46 @@ const QueryForm = ({ onQuerySubmit }: QueryFormProps) => {
           description: "You need 25 coins to generate an AI response. Please purchase more coins.",
           variant: "destructive",
         });
+        setIsLoading(false);
         return;
       }
       
-      // Get response from AI
+      // Get response from AI first before deducting coins
       const { data, error } = await supabase.functions.invoke('chat-with-ai', {
         body: { query },
       });
 
       if (error) throw error;
       
-      if (data && data.response) {
-        // Process the coin transaction
-        const transactionResult = await processTransaction({
-          amount: -25, 
-          description: 'AI consultation cost',
-          transactionType: 'usage'
-        });
-        
-        if (!transactionResult.success) {
-          toast({
-            title: "Transaction Failed",
-            description: transactionResult.message,
-            variant: "destructive",
-          });
-          return;
-        }
-        
-        // Process successful response
-        onQuerySubmit(data.response);
-        setQuery('');
-        
-        toast({
-          title: "Success",
-          description: "Response generated successfully. 25 coins have been deducted.",
-        });
-      } else {
+      if (!data || !data.response) {
         throw new Error("No response received from AI");
       }
+      
+      // Process the coin transaction after getting response
+      const transactionResult = await processTransaction({
+        amount: -25, 
+        description: 'AI consultation cost',
+        transactionType: 'usage'
+      });
+      
+      if (!transactionResult.success) {
+        toast({
+          title: "Transaction Failed",
+          description: transactionResult.message,
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+      
+      // Process successful response
+      onQuerySubmit(data.response);
+      setQuery('');
+      
+      toast({
+        title: "Success",
+        description: "Response generated successfully. 25 coins have been deducted.",
+      });
     } catch (error: any) {
       console.error('Error:', error);
       toast({
