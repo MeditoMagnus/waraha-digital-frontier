@@ -43,7 +43,7 @@ export const useProcessQuery = (onSuccess: (response: string) => void) => {
           description: "You need 25 coins to generate an AI response. Please purchase more coins.",
           variant: "destructive",
         });
-        return;
+        return null;
       }
 
       // Get response from AI first before deducting coins
@@ -52,52 +52,54 @@ export const useProcessQuery = (onSuccess: (response: string) => void) => {
       });
 
       if (error) throw error;
-      
-      // Deduct coins directly through SQL operations since RPC function isn't working
-      
-      // First, update the wallet balance
-      const { error: updateError } = await supabase
-        .from('user_wallets')
-        .update({ 
-          coin_balance: wallet.coin_balance - 25,
-          updated_at: new Date().toISOString()
-        })
-        .eq('user_id', user.id);
 
-      if (updateError) throw updateError;
-      
-      // Then perform the transaction record insert with the same user ID
-      try {
-        const { error: transactionError } = await supabase
-          .from('coin_transactions')
-          .insert([{
-            user_id: user.id,
-            amount: -25,
-            transaction_type: 'usage',
-            description: 'AI consultation cost'
-          }]);
-
-        if (transactionError) {
-          console.error("Transaction insert error:", transactionError);
-          // We'll continue even if the transaction record fails
-          // as the user's balance has already been updated
+      // Only deduct coins if we successfully get a response
+      if (data && data.response) {
+        // First, update the wallet balance
+        const { error: updateError } = await supabase
+          .from('user_wallets')
+          .update({ 
+            coin_balance: wallet.coin_balance - 25,
+            updated_at: new Date().toISOString()
+          })
+          .eq('user_id', user.id);
+  
+        if (updateError) throw updateError;
+        
+        // Then perform the transaction record insert with the same user ID
+        try {
+          const { error: transactionError } = await supabase
+            .from('coin_transactions')
+            .insert([{
+              user_id: user.id,
+              amount: -25,
+              transaction_type: 'usage',
+              description: 'AI consultation cost'
+            }]);
+  
+          if (transactionError) {
+            console.error("Transaction insert error:", transactionError);
+          }
+        } catch (insertErr) {
+          console.error("Error during transaction insert:", insertErr);
         }
-      } catch (insertErr) {
-        console.error("Error during transaction insert:", insertErr);
-        // Continue with the flow even if transaction logging fails
+        
+        // Important: Immediately invalidate the wallet query to refresh the UI
+        queryClient.invalidateQueries({ queryKey: ['wallet'] });
+        
+        // Process successful response
+        onSuccess(data.response);
+        
+        toast({
+          title: "Success",
+          description: "Response generated successfully. 25 coins have been deducted.",
+        });
+  
+        return data.response;
+      } else {
+        throw new Error("No response received from AI");
       }
       
-      // Important: Invalidate the wallet query to refresh the UI
-      queryClient.invalidateQueries({ queryKey: ['wallet'] });
-      
-      onSuccess(data.response);
-      
-      toast({
-        title: "Success",
-        description: "Response generated successfully. 25 coins have been deducted.",
-      });
-
-      return data.response;
     } catch (error: any) {
       console.error('Error:', error);
       toast({
@@ -105,6 +107,7 @@ export const useProcessQuery = (onSuccess: (response: string) => void) => {
         description: error.message || "Failed to generate response. Please try again.",
         variant: "destructive",
       });
+      return null;
     } finally {
       setIsLoading(false);
     }

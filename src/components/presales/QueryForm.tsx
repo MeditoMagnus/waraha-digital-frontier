@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Send, Loader2 } from "lucide-react";
 import { useProcessQuery } from "@/hooks/useProcessQuery";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface QueryFormProps {
   onQuerySubmit: (response: string) => void;
@@ -11,12 +12,15 @@ interface QueryFormProps {
 
 const QueryForm = ({ onQuerySubmit }: QueryFormProps) => {
   const [query, setQuery] = React.useState('');
+  const queryClient = useQueryClient();
   const { processQuery, isLoading } = useProcessQuery(onQuerySubmit);
 
   const handleSubmit = async () => {
     const response = await processQuery(query);
     if (response) {
       setQuery('');
+      // Force refresh wallet data after successful query
+      queryClient.invalidateQueries({ queryKey: ['wallet'] });
     }
   };
 
