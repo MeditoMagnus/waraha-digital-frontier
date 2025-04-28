@@ -42,12 +42,13 @@ const QueryForm = ({ onQuerySubmit }: QueryFormProps) => {
         return;
       }
 
-      // Call our new edge function that handles both AI response and coin deduction
+      // Call our edge function that handles both AI response and coin deduction
       const { data, error } = await supabase.functions.invoke('ai-query', {
         body: { query },
       });
 
       if (error) {
+        console.error('Edge function error:', error);
         throw new Error(error.message || "Failed to process query");
       }
 

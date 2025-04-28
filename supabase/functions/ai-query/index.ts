@@ -51,7 +51,7 @@ serve(async (req) => {
       );
     }
 
-    // Create a Supabase client with the user's JWT
+    // Create a Supabase client with the server role key
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
     
@@ -82,8 +82,8 @@ serve(async (req) => {
 
     console.log(`Processing query for user ${user.id}`);
     
-    // Step 1: Check if user has enough coins (25) for a query
-    const { data: transactionCheck, error: transactionCheckError } = await supabase.rpc(
+    // Step 1: Check if user has enough coins (25) for a query using our database function
+    const { data: walletCheck, error: walletError } = await supabase.rpc(
       'process_coin_transaction',
       {
         p_amount: 0, // Just checking balance, not deducting yet
@@ -92,12 +92,12 @@ serve(async (req) => {
       }
     );
 
-    if (transactionCheckError) {
-      console.error('Transaction check error:', transactionCheckError);
+    if (walletError) {
+      console.error('Wallet check error:', walletError);
       return new Response(
         JSON.stringify({ 
           success: false, 
-          error: transactionCheckError.message 
+          error: walletError.message || 'Error checking wallet balance'
         }), 
         { 
           status: 400, 
@@ -107,11 +107,11 @@ serve(async (req) => {
     }
 
     // Check wallet balance
-    if (!transactionCheck.success) {
+    if (!walletCheck.success) {
       return new Response(
         JSON.stringify({ 
           success: false, 
-          error: transactionCheck.message 
+          error: walletCheck.message || 'Failed to check wallet balance'
         }), 
         { 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -119,8 +119,9 @@ serve(async (req) => {
       );
     }
     
-    // Get current balance and ensure it's enough
-    const currentBalance = transactionCheck.new_balance;
+    const currentBalance = walletCheck.new_balance;
+    console.log(`Current balance for user ${user.id}: ${currentBalance}`);
+    
     if (currentBalance < 25) {
       return new Response(
         JSON.stringify({ 
@@ -142,7 +143,7 @@ serve(async (req) => {
       "integration", "api", "system", "architecture", "infrastructure",
       "deployment", "configuration", "service", "application", "solution",
       "platform", "tech", "compute", "storage", "web", "mobile", "device",
-      "pricing", "cost", "subscription", "license", "enterprise"
+      "pricing", "cost", "subscription", "license", "enterprise", "ITSM"
     ];
     
     const isITRelated = itRelatedKeywords.some(keyword => 
@@ -199,15 +200,18 @@ serve(async (req) => {
 
     if (transactionError) {
       console.error('Transaction error:', transactionError);
+      // We still send the response but inform the user about the transaction error
       return new Response(
         JSON.stringify({ 
-          success: false, 
-          error: transactionError.message,
-          // We still include the AI response since we generated it
-          response: aiResponse 
+          success: true, 
+          response: aiResponse,
+          transaction: {
+            success: false,
+            message: transactionError.message,
+            error: 'Failed to deduct coins, but response provided'
+          }
         }), 
         { 
-          status: 400, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
         }
       );

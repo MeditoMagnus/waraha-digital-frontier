@@ -14,28 +14,40 @@ const CoinWallet = ({ onPurchaseClick }: CoinWalletProps) => {
   const { data: walletData, isLoading, refetch } = useQuery({
     queryKey: ['wallet'],
     queryFn: async () => {
-      // Get the current user
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      
-      if (userError || !user) {
-        throw new Error(userError?.message || "User not authenticated");
-      }
-      
-      // Query the wallet using the user ID
-      const { data, error } = await supabase
-        .from('user_wallets')
-        .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle();
-      
-      if (error) {
+      try {
+        // Get the current user
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        
+        if (userError || !user) {
+          throw new Error(userError?.message || "User not authenticated");
+        }
+        
+        // Query the wallet using the user ID
+        const { data, error } = await supabase
+          .from('user_wallets')
+          .select('*')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        
+        if (error) {
+          console.error("Wallet fetch error:", error);
+          throw error;
+        }
+        
+        // If no wallet found, return default values
+        if (!data) {
+          return { coin_balance: 0, id: null, user_id: user.id };
+        }
+        
+        return data;
+      } catch (error) {
+        console.error("Wallet fetch error:", error);
         throw error;
       }
-      
-      return data || { coin_balance: 0, id: null };
     },
     refetchInterval: 5000, // Refetch every 5 seconds to keep the balance updated
     refetchOnWindowFocus: true, // Refetch when the window regains focus
+    retry: 3, // Retry 3 times if there's an error
   });
 
   return (
