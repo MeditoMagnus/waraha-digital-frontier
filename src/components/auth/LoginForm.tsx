@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -22,6 +23,8 @@ export const LoginForm = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
+  const [isResetMode, setIsResetMode] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
   
   React.useEffect(() => {
     localStorage.removeItem('userRole');
@@ -36,6 +39,47 @@ export const LoginForm = () => {
       password: "",
     },
   });
+
+  const handlePasswordReset = async () => {
+    try {
+      const email = form.getValues("email");
+      
+      if (!email || !email.match(/^\S+@\S+\.\S+$/)) {
+        toast({
+          title: "Invalid Email",
+          description: "Please enter a valid email address",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + '/login',
+      });
+      
+      if (error) {
+        toast({
+          title: "Reset Failed",
+          description: error.message,
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      setResetSent(true);
+      toast({
+        title: "Password Reset Email Sent",
+        description: "Check your inbox for password reset instructions",
+      });
+    } catch (error: any) {
+      console.error("Password reset error:", error);
+      toast({
+        title: "Reset Failed",
+        description: error.message || "An unexpected error occurred",
+        variant: "destructive",
+      });
+    }
+  };
 
   const onSubmit = async (values: z.infer<typeof loginSchema>) => {
     try {
@@ -56,11 +100,11 @@ export const LoginForm = () => {
       if (data.user) {
         localStorage.setItem('userRole', 'user');
         localStorage.setItem('userEmail', data.user.email || '');
-        localStorage.setItem('userName', data.user.user_metadata.name || 'User');
+        localStorage.setItem('userName', data.user.user_metadata?.name || 'User');
         
         toast({
           title: "Login Successful",
-          description: `Welcome, ${data.user.user_metadata.name || 'User'}!`,
+          description: `Welcome, ${data.user.user_metadata?.name || 'User'}!`,
         });
         
         setTimeout(() => {
@@ -76,6 +120,68 @@ export const LoginForm = () => {
       });
     }
   };
+
+  if (isResetMode) {
+    return (
+      <div className="space-y-4">
+        <div className="text-center mb-4">
+          <h3 className="text-lg font-medium">Reset Password</h3>
+          <p className="text-sm text-muted-foreground">
+            Enter your email and we'll send you reset instructions
+          </p>
+        </div>
+        
+        {resetSent ? (
+          <div className="bg-blue-50 border border-blue-200 rounded-md p-4 text-center">
+            <p className="text-blue-800">Check your email for reset instructions</p>
+            <Button 
+              variant="link" 
+              className="mt-2 p-0"
+              onClick={() => {
+                setIsResetMode(false);
+                setResetSent(false);
+              }}
+            >
+              Return to login
+            </Button>
+          </div>
+        ) : (
+          <>
+            <Form {...form}>
+              <form className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input placeholder="you@example.com" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div className="flex flex-col gap-2">
+                  <Button type="button" onClick={handlePasswordReset} className="w-full">
+                    Send Reset Instructions
+                  </Button>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => setIsResetMode(false)}
+                    className="w-full"
+                  >
+                    Back to Login
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </>
+        )}
+      </div>
+    );
+  }
 
   return (
     <Form {...form}>
@@ -125,6 +231,17 @@ export const LoginForm = () => {
         />
 
         <Button type="submit" className="w-full">Login</Button>
+        
+        <div className="text-center">
+          <Button 
+            type="button" 
+            variant="link" 
+            onClick={() => setIsResetMode(true)}
+            className="p-0 h-auto text-sm"
+          >
+            Forgot your password?
+          </Button>
+        </div>
       </form>
     </Form>
   );

@@ -1,20 +1,23 @@
 
-# This is a config file for the Supabase CLI
-
 project_id = "iympksahhwfpirxtoljs"
 
-[api]
-enabled = true
-port = 54321
-schemas = ["public", "storage", "graphql_public"]
-extra_search_path = ["public", "extensions"]
-max_rows = 1000
+[functions.track-registration]
+verify_jwt = false
 
-[db]
-port = 54322
+[functions.ai-query]
+verify_jwt = false
 
-[studio]
-port = 54323
+[functions.chat-with-ai]
+verify_jwt = false
 
-[functions]
-serve_port = 54324
+[functions.check-table-exists]
+verify_jwt = false
+
+[functions.create-payment]
+verify_jwt = false
+
+[functions.track-query]
+verify_jwt = false
+
+[functions.update-profile]
+verify_jwt = true

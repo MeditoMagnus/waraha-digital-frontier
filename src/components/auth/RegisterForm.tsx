@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -62,6 +63,7 @@ export const RegisterForm = ({ onSuccess, setLoginEmail }: RegisterFormProps) =>
         return;
       }
 
+      // Register the user with proper metadata 
       const { data, error } = await supabase.auth.signUp({
         email: values.email,
         password: values.password,
@@ -70,6 +72,7 @@ export const RegisterForm = ({ onSuccess, setLoginEmail }: RegisterFormProps) =>
             name: values.name,
             phone_number: formattedPhoneNumber || null,
             designation: values.designation || null,
+            full_name: values.name, // Add a full_name field for better compatibility
           },
         },
       });
@@ -85,6 +88,7 @@ export const RegisterForm = ({ onSuccess, setLoginEmail }: RegisterFormProps) =>
       }
 
       if (data.user) {
+        // Assign the role based on student status
         const roleToAssign = values.isStudent ? 'student' : 'user';
         const { error: roleError } = await supabase
           .from('user_roles')
@@ -102,6 +106,19 @@ export const RegisterForm = ({ onSuccess, setLoginEmail }: RegisterFormProps) =>
           });
         }
         
+        // Update the profiles table with user data
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .upsert({
+            id: data.user.id,
+            designation: values.designation || null,
+            updated_at: new Date().toISOString()
+          });
+
+        if (profileError) {
+          console.error("Profile update error:", profileError);
+        }
+        
         try {
           const response = await fetch("https://iympksahhwfpirxtoljs.supabase.co/functions/v1/track-registration", {
             method: 'POST',
@@ -111,7 +128,8 @@ export const RegisterForm = ({ onSuccess, setLoginEmail }: RegisterFormProps) =>
             },
             body: JSON.stringify({
               email: values.email,
-              name: values.name
+              name: values.name,
+              phone: formattedPhoneNumber || null
             })
           });
           

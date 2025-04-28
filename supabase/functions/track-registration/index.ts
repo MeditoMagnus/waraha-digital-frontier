@@ -20,7 +20,7 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const { email, name } = await req.json();
+    const { email, name, phone } = await req.json();
 
     // Execute a direct SQL query to track registrations
     // This bypasses TypeScript type checking since we're using raw SQL
