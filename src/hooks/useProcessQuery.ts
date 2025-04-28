@@ -55,7 +55,7 @@ export const useProcessQuery = (onSuccess: (response: string) => void) => {
 
       // Only deduct coins if we successfully get a response
       if (data && data.response) {
-        // Call the deduct_coins function to handle the transaction
+        // Call the deduct_coins RPC function to handle the transaction
         const { data: deductResult, error: deductError } = await supabase
           .rpc('deduct_coins', { 
             amount: 25, 
@@ -67,7 +67,7 @@ export const useProcessQuery = (onSuccess: (response: string) => void) => {
           throw new Error(`Failed to deduct coins: ${deductError.message}`);
         }
         
-        if (!deductResult) {
+        if (deductResult === false) {
           throw new Error("Failed to deduct coins. You may not have sufficient balance.");
         }
         
