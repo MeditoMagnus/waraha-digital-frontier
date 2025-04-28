@@ -3,57 +3,39 @@ import React from 'react';
 import { Coins } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface CoinWalletProps {
   onPurchaseClick: () => void;
 }
 
 const CoinWallet = ({ onPurchaseClick }: CoinWalletProps) => {
-  const { toast } = useToast();
-
   const { data: walletData, isLoading, refetch } = useQuery({
     queryKey: ['wallet'],
     queryFn: async () => {
-      try {
-        // Get the current user
-        const { data: { user }, error: userError } = await supabase.auth.getUser();
-        
-        if (userError || !user) {
-          throw new Error(userError?.message || "User not authenticated");
-        }
-        
-        // Query the wallet using the user ID
-        const { data, error } = await supabase
-          .from('user_wallets')
-          .select('*')
-          .eq('user_id', user.id)
-          .single();
-        
-        if (error) {
-          // If error is 'No rows found', return default wallet
-          if (error.code === 'PGRST116') {
-            return { coin_balance: 0, id: null };
-          }
-          throw error;
-        }
-        
-        return data;
-      } catch (error: any) {
-        console.error("Wallet fetch error:", error);
-        toast({
-          title: "Error fetching wallet",
-          description: error.message,
-          variant: "destructive",
-        });
-        return { coin_balance: 0, id: null };
+      // Get the current user
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError || !user) {
+        throw new Error(userError?.message || "User not authenticated");
       }
+      
+      // Query the wallet using the user ID
+      const { data, error } = await supabase
+        .from('user_wallets')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      
+      if (error) {
+        throw error;
+      }
+      
+      return data || { coin_balance: 0, id: null };
     },
     refetchInterval: 5000, // Refetch every 5 seconds to keep the balance updated
     refetchOnWindowFocus: true, // Refetch when the window regains focus
-    staleTime: 0, // Consider data immediately stale so it always refreshes
   });
 
   return (

@@ -1,23 +1,21 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Send, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
-import { useCoinTransaction } from "@/hooks/useCoinTransaction";
 
 interface QueryFormProps {
   onQuerySubmit: (response: string) => void;
 }
 
 const QueryForm = ({ onQuerySubmit }: QueryFormProps) => {
-  const [query, setQuery] = React.useState('');
-  const [isLoading, setIsLoading] = React.useState(false);
+  const [query, setQuery] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { processTransaction } = useCoinTransaction();
 
   const handleSubmit = async () => {
     if (!query.trim()) {
@@ -43,68 +41,31 @@ const QueryForm = ({ onQuerySubmit }: QueryFormProps) => {
         setIsLoading(false);
         return;
       }
-      
-      // Force refresh wallet data before proceeding
-      await queryClient.invalidateQueries({ queryKey: ['wallet'] });
-      
-      // Get user's wallet
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        throw new Error("User not authenticated");
-      }
-      
-      const { data: wallets, error: walletError } = await supabase
-        .from('user_wallets')
-        .select('*')
-        .eq('user_id', user.id);
 
-      if (walletError) throw walletError;
-
-      if (!wallets || wallets.length === 0 || wallets[0].coin_balance < 25) {
-        toast({
-          title: "Insufficient Coins",
-          description: "You need 25 coins to generate an AI response. Please purchase more coins.",
-          variant: "destructive",
-        });
-        setIsLoading(false);
-        return;
-      }
-      
-      // Get response from AI first before deducting coins
-      const { data, error } = await supabase.functions.invoke('chat-with-ai', {
+      // Call our new edge function that handles both AI response and coin deduction
+      const { data, error } = await supabase.functions.invoke('ai-query', {
         body: { query },
       });
 
-      if (error) throw error;
-      
-      if (!data || !data.response) {
-        throw new Error("No response received from AI");
+      if (error) {
+        throw new Error(error.message || "Failed to process query");
       }
-      
-      // Process the coin transaction after getting response
-      const transactionResult = await processTransaction({
-        amount: -25, 
-        description: 'AI consultation cost',
-        transactionType: 'usage'
-      });
-      
-      if (!transactionResult.success) {
-        toast({
-          title: "Transaction Failed",
-          description: transactionResult.message,
-          variant: "destructive",
-        });
-        setIsLoading(false);
-        return;
+
+      if (!data.success) {
+        throw new Error(data.error || "Failed to process query");
       }
+
+      // Force refresh wallet data after successful query
+      queryClient.invalidateQueries({ queryKey: ['wallet'] });
       
       // Process successful response
       onQuerySubmit(data.response);
       setQuery('');
       
+      // Show success toast with updated balance
       toast({
         title: "Success",
-        description: "Response generated successfully. 25 coins have been deducted.",
+        description: `Response generated successfully. Your new balance is ${data.transaction.newBalance} coins.`,
       });
     } catch (error: any) {
       console.error('Error:', error);
@@ -113,10 +74,11 @@ const QueryForm = ({ onQuerySubmit }: QueryFormProps) => {
         description: error.message || "Failed to generate response. Please try again.",
         variant: "destructive",
       });
+      
+      // Force refresh wallet data even after error to ensure accuracy
+      queryClient.invalidateQueries({ queryKey: ['wallet'] });
     } finally {
       setIsLoading(false);
-      // Force refresh wallet data after query attempt
-      queryClient.invalidateQueries({ queryKey: ['wallet'] });
     }
   };
 

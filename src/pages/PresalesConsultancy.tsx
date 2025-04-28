@@ -24,8 +24,7 @@ const PresalesConsultancy = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   
-  const userName = localStorage.getItem('userName');
-  const userRole = localStorage.getItem('userRole');
+  const userName = localStorage.getItem('userName') || 'User';
   
   useEffect(() => {
     // Check if user is authenticated
@@ -45,11 +44,25 @@ const PresalesConsultancy = () => {
     };
     
     checkAuth();
+    
+    // Set up auth state change listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (event === 'SIGNED_OUT' || !session) {
+          navigate('/login');
+        }
+      }
+    );
+    
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [navigate, toast, queryClient]);
 
   const handleResponse = (newResponse: string) => {
     setResponse(newResponse);
     setActiveTab('response');
+    
     // Force refresh wallet data when response is received
     queryClient.invalidateQueries({ queryKey: ['wallet'] });
   };
@@ -91,6 +104,7 @@ const PresalesConsultancy = () => {
 
   const handlePurchaseComplete = () => {
     setShowPurchaseDialog(false);
+    
     // Force refresh wallet data after purchase
     queryClient.invalidateQueries({ queryKey: ['wallet'] });
     
@@ -131,7 +145,7 @@ const PresalesConsultancy = () => {
         <CardHeader>
           <CardTitle className="text-4xl text-center">AI Technical Consultant</CardTitle>
           <CardDescription className="text-center">
-            Welcome, {userName || 'User'}! Get expert technical advice on software, IT services, architecture, pricing, 
+            Welcome, {userName}! Get expert technical advice on software, IT services, architecture, pricing, 
             configurations, or integrations - powered by advanced AI.
           </CardDescription>
         </CardHeader>
