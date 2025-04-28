@@ -5,28 +5,39 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface CoinWalletProps {
   onPurchaseClick: () => void;
 }
 
 const CoinWallet = ({ onPurchaseClick }: CoinWalletProps) => {
+  const { toast } = useToast();
+  
   const { data: walletData, isLoading, refetch } = useQuery({
     queryKey: ['wallet'],
     queryFn: async () => {
       try {
-        // Get the current user
-        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        console.log("Fetching wallet data");
         
-        if (userError || !user) {
-          throw new Error(userError?.message || "User not authenticated");
+        // Get the current user
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          console.error("Session error:", sessionError);
+          throw new Error(sessionError.message);
+        }
+        
+        if (!session || !session.user) {
+          console.error("No active session");
+          throw new Error("Auth session missing!");
         }
         
         // Query the wallet using the user ID
         const { data, error } = await supabase
           .from('user_wallets')
           .select('*')
-          .eq('user_id', user.id)
+          .eq('user_id', session.user.id)
           .maybeSingle();
         
         if (error) {
@@ -36,12 +47,24 @@ const CoinWallet = ({ onPurchaseClick }: CoinWalletProps) => {
         
         // If no wallet found, return default values
         if (!data) {
-          return { coin_balance: 0, id: null, user_id: user.id };
+          console.log("No wallet found, returning default");
+          return { coin_balance: 0, id: null, user_id: session.user.id };
         }
         
+        console.log("Wallet fetched successfully:", data);
         return data;
       } catch (error) {
         console.error("Wallet fetch error:", error);
+        
+        // Show a toast for authentication errors
+        if (String(error).includes("Auth session")) {
+          toast({
+            title: "Authentication Error",
+            description: "Please log in to view your wallet.",
+            variant: "destructive",
+          });
+        }
+        
         throw error;
       }
     },
@@ -49,6 +72,14 @@ const CoinWallet = ({ onPurchaseClick }: CoinWalletProps) => {
     refetchOnWindowFocus: true, // Refetch when the window regains focus
     retry: 3, // Retry 3 times if there's an error
   });
+
+  const handlePurchaseClick = () => {
+    onPurchaseClick();
+    // Only refetch if we're not already loading
+    if (!isLoading) {
+      refetch();
+    }
+  };
 
   return (
     <Card className="mb-6">
@@ -67,10 +98,7 @@ const CoinWallet = ({ onPurchaseClick }: CoinWalletProps) => {
             </span>
           </div>
           <Button 
-            onClick={() => {
-              onPurchaseClick();
-              refetch(); // Refresh wallet data when purchase dialog opens
-            }}
+            onClick={handlePurchaseClick}
             className="w-full"
           >
             Buy More Coins

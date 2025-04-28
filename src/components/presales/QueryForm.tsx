@@ -30,6 +30,7 @@ const QueryForm = ({ onQuerySubmit }: QueryFormProps) => {
     setIsLoading(true);
     
     try {
+      console.log("Checking authentication status");
       // Check if user is authenticated
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
@@ -42,6 +43,7 @@ const QueryForm = ({ onQuerySubmit }: QueryFormProps) => {
         return;
       }
 
+      console.log("Sending query to edge function");
       // Call our edge function that handles both AI response and coin deduction
       const { data, error } = await supabase.functions.invoke('ai-query', {
         body: { query },
@@ -52,10 +54,16 @@ const QueryForm = ({ onQuerySubmit }: QueryFormProps) => {
         throw new Error(error.message || "Failed to process query");
       }
 
+      if (!data) {
+        throw new Error("No response received");
+      }
+      
       if (!data.success) {
         throw new Error(data.error || "Failed to process query");
       }
 
+      console.log("Query processed successfully:", data);
+      
       // Force refresh wallet data after successful query
       queryClient.invalidateQueries({ queryKey: ['wallet'] });
       
@@ -70,9 +78,19 @@ const QueryForm = ({ onQuerySubmit }: QueryFormProps) => {
       });
     } catch (error: any) {
       console.error('Error:', error);
+      
+      // More specific error messages based on error content
+      let errorMessage = "Failed to generate response. Please try again.";
+      
+      if (error.message.includes("Insufficient coins")) {
+        errorMessage = "You don't have enough coins. Please purchase more coins to continue.";
+      } else if (error.message.includes("authentication") || error.message.includes("User not authenticated")) {
+        errorMessage = "Authentication error. Please log in again.";
+      }
+      
       toast({
         title: "Error",
-        description: error.message || "Failed to generate response. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
       

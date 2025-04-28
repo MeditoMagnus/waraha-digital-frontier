@@ -23,31 +23,43 @@ serve(async (req) => {
   }
 
   try {
+    console.log("Starting ai-query function execution");
+    
     // Get request data
-    const { query } = await req.json();
+    let body;
+    try {
+      body = await req.json();
+    } catch (e) {
+      console.error("Error parsing request body:", e);
+      return new Response(
+        JSON.stringify({ success: false, error: "Invalid request body" }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    const { query } = body;
     
     if (!query || typeof query !== 'string') {
+      console.error("Invalid query provided:", query);
       return new Response(
         JSON.stringify({ 
           success: false, 
           error: 'Invalid query - must provide a query string' 
         }), 
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     // Get the JWT token from the request to identify the user
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
+      console.error("No authorization header provided");
       return new Response(
         JSON.stringify({ 
           success: false, 
           error: 'No authorization header provided' 
         }), 
-        { 
-          status: 401,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -56,6 +68,7 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
     
     if (!supabaseUrl || !supabaseServiceKey) {
+      console.error("Missing Supabase environment variables");
       throw new Error('Missing Supabase environment variables');
     }
 
@@ -73,64 +86,43 @@ serve(async (req) => {
           success: false, 
           error: userError?.message || 'User not authenticated' 
         }), 
-        { 
-          status: 401, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     console.log(`Processing query for user ${user.id}`);
     
-    // Step 1: Check if user has enough coins (25) for a query using our database function
-    const { data: walletCheck, error: walletError } = await supabase.rpc(
-      'process_coin_transaction',
-      {
-        p_amount: 0, // Just checking balance, not deducting yet
-        p_description: 'Balance check for AI consultation',
-        p_transaction_type: 'check'
-      }
-    );
-
-    if (walletError) {
-      console.error('Wallet check error:', walletError);
+    // Step 1: Directly check and update user's wallet balance using our database function
+    console.log("Checking wallet and preparing transaction");
+    
+    // First check if user has enough coins
+    const { data: balanceCheckData, error: balanceCheckError } = await supabase
+      .from('user_wallets')
+      .select('coin_balance')
+      .eq('user_id', user.id)
+      .maybeSingle();
+      
+    if (balanceCheckError) {
+      console.error("Error checking wallet balance:", balanceCheckError);
       return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: walletError.message || 'Error checking wallet balance'
-        }), 
-        { 
-          status: 400, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
-    }
-
-    // Check wallet balance
-    if (!walletCheck.success) {
-      return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: walletCheck.message || 'Failed to check wallet balance'
-        }), 
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
+        JSON.stringify({
+          success: false,
+          error: 'Error checking wallet balance'
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
     
-    const currentBalance = walletCheck.new_balance;
+    const currentBalance = balanceCheckData?.coin_balance || 0;
     console.log(`Current balance for user ${user.id}: ${currentBalance}`);
     
     if (currentBalance < 25) {
       return new Response(
-        JSON.stringify({ 
-          success: false, 
-          error: 'Insufficient coins. You need 25 coins for an AI consultation.' 
-        }), 
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
+        JSON.stringify({
+          success: false,
+          error: 'Insufficient coins. You need 25 coins for an AI consultation.'
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -154,98 +146,124 @@ serve(async (req) => {
       ? 'You are a highly skilled IT solutions consultant. Help users with queries related to software, IT services, architecture, pricing, configurations, or integrations.'
       : 'You are a highly skilled IT solutions consultant. If the question is not related to IT, technology, or business solutions, politely decline to answer and explain that you are specifically an IT consultant who can only help with technology-related queries.';
 
-    const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o',
-        messages: [
-          {
-            role: 'system',
-            content: systemMessage
-          },
-          {
-            role: 'user',
-            content: query
-          }
-        ],
-        temperature: 0.7,
-        max_tokens: 1000
-      }),
-    });
+    let aiResponse;
+    try {
+      const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${OPENAI_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o',
+          messages: [
+            {
+              role: 'system',
+              content: systemMessage
+            },
+            {
+              role: 'user',
+              content: query
+            }
+          ],
+          temperature: 0.7,
+          max_tokens: 1000
+        }),
+      });
 
-    if (!openAIResponse.ok) {
-      const openAIError = await openAIResponse.json();
-      console.error('OpenAI API error:', openAIError);
-      throw new Error(openAIError.error?.message || 'Failed to get AI response');
+      if (!openAIResponse.ok) {
+        const openAIError = await openAIResponse.json();
+        console.error('OpenAI API error:', openAIError);
+        throw new Error(openAIError.error?.message || 'Failed to get AI response');
+      }
+
+      const aiData = await openAIResponse.json();
+      aiResponse = aiData.choices[0].message.content;
+    } catch (error) {
+      console.error('Error calling OpenAI:', error);
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: 'Failed to generate AI response. Please try again.' 
+        }), 
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
-
-    const aiData = await openAIResponse.json();
-    const aiResponse = aiData.choices[0].message.content;
     
     console.log('AI response received, deducting coins...');
 
-    // Step 3: Deduct coins for the successful AI response
-    const { data: transaction, error: transactionError } = await supabase.rpc(
-      'process_coin_transaction',
-      {
-        p_amount: -25, // Deduct 25 coins
-        p_description: 'AI consultation cost',
-        p_transaction_type: 'usage'
+    // Step 3: Deduct coins using direct database update
+    try {
+      // Deduct coins from wallet
+      const { error: updateError } = await supabase
+        .from('user_wallets')
+        .update({ 
+          coin_balance: currentBalance - 25,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', user.id);
+      
+      if (updateError) {
+        console.error('Error updating wallet:', updateError);
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: 'Failed to deduct coins from wallet'
+          }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
       }
-    );
-
-    if (transactionError) {
-      console.error('Transaction error:', transactionError);
-      // We still send the response but inform the user about the transaction error
+      
+      // Record transaction
+      const { error: transactionError } = await supabase
+        .from('coin_transactions')
+        .insert({
+          user_id: user.id,
+          amount: -25,
+          transaction_type: 'usage',
+          description: 'AI consultation cost'
+        });
+      
+      if (transactionError) {
+        console.error('Error recording transaction:', transactionError);
+        // We'll continue even if transaction recording fails
+      }
+      
+      const newBalance = currentBalance - 25;
+      
+      console.log('Transaction completed successfully, new balance:', newBalance);
+      
+      // Step 4: Return success with AI response and updated balance
       return new Response(
         JSON.stringify({ 
           success: true, 
           response: aiResponse,
           transaction: {
-            success: false,
-            message: transactionError.message,
-            error: 'Failed to deduct coins, but response provided'
+            success: true,
+            message: 'Coins deducted successfully',
+            newBalance: newBalance
           }
         }), 
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    } catch (error) {
+      console.error('Error in coin deduction:', error);
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: 'Failed to process coin transaction' 
+        }), 
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
-
-    console.log('Transaction completed successfully');
-    
-    // Step 4: Return success with AI response and updated balance
-    return new Response(
-      JSON.stringify({ 
-        success: true, 
-        response: aiResponse,
-        transaction: {
-          success: transaction.success,
-          message: transaction.message,
-          newBalance: transaction.new_balance
-        }
-      }), 
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      }
-    );
-
   } catch (error) {
-    console.error('Error in ai-query function:', error);
+    console.error('Unhandled error in ai-query function:', error);
     return new Response(
       JSON.stringify({ 
         success: false, 
         error: error.message || 'An unexpected error occurred' 
       }), 
-      { 
-        status: 500, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      }
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });
