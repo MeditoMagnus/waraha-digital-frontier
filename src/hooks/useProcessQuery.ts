@@ -44,14 +44,16 @@ export const useProcessQuery = (onSuccess: (response: string) => void) => {
         return;
       }
 
-      // Get response from AI
+      // Get response from AI first before deducting coins
       const { data, error } = await supabase.functions.invoke('chat-with-ai', {
         body: { query },
       });
 
       if (error) throw error;
       
-      // Update the wallet and record the transaction manually since the RPC call is failing
+      // Deduct coins directly through SQL operations since RPC function isn't working
+      
+      // First, update the wallet balance
       const { error: updateError } = await supabase
         .from('user_wallets')
         .update({ 
@@ -62,17 +64,26 @@ export const useProcessQuery = (onSuccess: (response: string) => void) => {
 
       if (updateError) throw updateError;
       
-      // Record the transaction
-      const { error: transactionError } = await supabase
-        .from('coin_transactions')
-        .insert({
-          user_id: user.id,
-          amount: -25,
-          transaction_type: 'usage',
-          description: 'AI consultation cost'
-        });
+      // Then perform the transaction record insert with the same user ID
+      try {
+        const { error: transactionError } = await supabase
+          .from('coin_transactions')
+          .insert([{
+            user_id: user.id,
+            amount: -25,
+            transaction_type: 'usage',
+            description: 'AI consultation cost'
+          }]);
 
-      if (transactionError) throw transactionError;
+        if (transactionError) {
+          console.error("Transaction insert error:", transactionError);
+          // We'll continue even if the transaction record fails
+          // as the user's balance has already been updated
+        }
+      } catch (insertErr) {
+        console.error("Error during transaction insert:", insertErr);
+        // Continue with the flow even if transaction logging fails
+      }
       
       onSuccess(data.response);
       
