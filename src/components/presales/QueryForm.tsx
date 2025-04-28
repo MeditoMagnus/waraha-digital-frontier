@@ -5,6 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Send, Loader2 } from "lucide-react";
 import { useProcessQuery } from "@/hooks/useProcessQuery";
 import { useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface QueryFormProps {
   onQuerySubmit: (response: string) => void;
@@ -16,6 +17,15 @@ const QueryForm = ({ onQuerySubmit }: QueryFormProps) => {
   const { processQuery, isLoading } = useProcessQuery(onQuerySubmit);
 
   const handleSubmit = async () => {
+    // Get latest wallet data before proceeding
+    await queryClient.invalidateQueries({ queryKey: ['wallet'] });
+    
+    // Check if user is authenticated
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      return;
+    }
+    
     const response = await processQuery(query);
     if (response) {
       setQuery('');

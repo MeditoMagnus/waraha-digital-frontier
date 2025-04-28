@@ -38,6 +38,7 @@ const CoinWallet = ({ onPurchaseClick }: CoinWalletProps) => {
         
         return data || { coin_balance: 0 };
       } catch (error: any) {
+        console.error("Wallet fetch error:", error);
         toast({
           title: "Error fetching wallet",
           description: error.message,

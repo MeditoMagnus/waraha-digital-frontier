@@ -55,36 +55,20 @@ export const useProcessQuery = (onSuccess: (response: string) => void) => {
 
       // Only deduct coins if we successfully get a response
       if (data && data.response) {
-        // First, update the wallet balance
-        const { error: updateError } = await supabase
-          .from('user_wallets')
-          .update({ 
-            coin_balance: wallet.coin_balance - 25,
-            updated_at: new Date().toISOString()
-          })
-          .eq('user_id', user.id);
-  
-        if (updateError) throw updateError;
+        // Call the deduct_coins function to handle the transaction
+        const { data: deductResult, error: deductError } = await supabase
+          .rpc('deduct_coins', { 
+            amount: 25, 
+            description: 'AI consultation cost' 
+          });
         
-        // Then perform the transaction record insert with the same user ID
-        try {
-          const { error: transactionError } = await supabase
-            .from('coin_transactions')
-            .insert([{
-              user_id: user.id,
-              amount: -25,
-              transaction_type: 'usage',
-              description: 'AI consultation cost'
-            }]);
-  
-          if (transactionError) {
-            console.error("Transaction insert error:", transactionError);
-          }
-        } catch (insertErr) {
-          console.error("Error during transaction insert:", insertErr);
+        if (deductError) throw deductError;
+        
+        if (!deductResult) {
+          throw new Error("Failed to deduct coins. You may not have sufficient balance.");
         }
         
-        // Important: Immediately invalidate the wallet query to refresh the UI
+        // Immediately invalidate the wallet query to refresh the UI
         queryClient.invalidateQueries({ queryKey: ['wallet'] });
         
         // Process successful response

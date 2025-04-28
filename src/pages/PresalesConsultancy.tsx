@@ -28,19 +28,30 @@ const PresalesConsultancy = () => {
   const userRole = localStorage.getItem('userRole');
   
   useEffect(() => {
-    if (!userRole || userRole !== 'user') {
-      toast({
-        title: "Access Denied",
-        description: "Please login to access the AI consultant",
-        variant: "destructive",
-      });
-      navigate('/login');
-    }
-  }, [navigate, toast, userRole]);
+    // Check if user is authenticated
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({
+          title: "Access Denied",
+          description: "Please login to access the AI consultant",
+          variant: "destructive",
+        });
+        navigate('/login');
+      } else {
+        // Force refresh wallet data when component loads
+        queryClient.invalidateQueries({ queryKey: ['wallet'] });
+      }
+    };
+    
+    checkAuth();
+  }, [navigate, toast, queryClient]);
 
   const handleResponse = (newResponse: string) => {
     setResponse(newResponse);
     setActiveTab('response');
+    // Force refresh wallet data when response is received
+    queryClient.invalidateQueries({ queryKey: ['wallet'] });
   };
   
   const handleLogout = async () => {
@@ -76,6 +87,17 @@ const PresalesConsultancy = () => {
     } finally {
       setIsLoggingOut(false);
     }
+  };
+
+  const handlePurchaseComplete = () => {
+    setShowPurchaseDialog(false);
+    // Force refresh wallet data after purchase
+    queryClient.invalidateQueries({ queryKey: ['wallet'] });
+    
+    toast({
+      title: "Purchase Successful",
+      description: "Your coins have been added to your wallet.",
+    });
   };
 
   return (
@@ -139,7 +161,7 @@ const PresalesConsultancy = () => {
               Select an amount of coins to purchase. Each AI consultation costs 25 coins.
             </DialogDescription>
           </DialogHeader>
-          <PurchaseCoins />
+          <PurchaseCoins onPurchaseComplete={handlePurchaseComplete} />
         </DialogContent>
       </Dialog>
     </div>
