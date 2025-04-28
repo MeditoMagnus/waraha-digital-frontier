@@ -108,11 +108,13 @@ export const RegisterForm = ({ onSuccess, setLoginEmail }: RegisterFormProps) =>
         
         // Also track registration in Edge Function for analytics
         try {
-          const response = await fetch(`${supabase.supabaseUrl}/functions/v1/track-registration`, {
+          // Use the constant URL instead of accessing supabaseUrl property
+          const response = await fetch("https://iympksahhwfpirxtoljs.supabase.co/functions/v1/track-registration", {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': `Bearer ${supabase.supabaseKey}`
+              // Use the constant API key from the imports
+              'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml5bXBrc2FoaHdmcGlyeHRvbGpzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU2NTM4NzksImV4cCI6MjA2MTIyOTg3OX0.-cNhRxmkcpnoor42GieeKhuHwYWUqTCBqWCxDjwcpAs`
             },
             body: JSON.stringify({
               email: values.email,
