@@ -29,18 +29,18 @@ const CoinWallet = ({ onPurchaseClick }: CoinWalletProps) => {
         const { data, error } = await supabase
           .from('user_wallets')
           .select('*')
-          .eq('user_id', user.id);
+          .eq('user_id', user.id)
+          .single();
         
         if (error) {
+          // If error is 'No rows found', return default wallet
+          if (error.code === 'PGRST116') {
+            return { coin_balance: 0, id: null };
+          }
           throw error;
         }
         
-        if (!data || data.length === 0) {
-          // No wallet found, return default
-          return { coin_balance: 0 };
-        }
-        
-        return data[0];
+        return data;
       } catch (error: any) {
         console.error("Wallet fetch error:", error);
         toast({
@@ -48,7 +48,7 @@ const CoinWallet = ({ onPurchaseClick }: CoinWalletProps) => {
           description: error.message,
           variant: "destructive",
         });
-        return { coin_balance: 0 };
+        return { coin_balance: 0, id: null };
       }
     },
     refetchInterval: 5000, // Refetch every 5 seconds to keep the balance updated

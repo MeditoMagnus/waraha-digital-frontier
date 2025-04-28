@@ -22,45 +22,78 @@ export const useCoinTransaction = () => {
         throw new Error(userError?.message || "User not authenticated");
       }
       
-      // Get user's wallet
-      const { data: wallets, error: walletError } = await supabase
+      // First, verify the user's wallet exists and has enough balance
+      const { data: walletData, error: walletError } = await supabase
         .from('user_wallets')
-        .select('coin_balance')
-        .eq('user_id', user.id);
-
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+      
       if (walletError) {
-        console.error("Wallet fetch error:", walletError);
+        console.error("Error fetching wallet:", walletError);
         throw new Error(walletError.message || "Failed to fetch wallet");
       }
       
-      // Check if wallet exists
-      if (!wallets || wallets.length === 0) {
-        throw new Error("Wallet not found");
+      if (!walletData) {
+        // Create a wallet if it doesn't exist
+        const { data: newWallet, error: createError } = await supabase
+          .from('user_wallets')
+          .insert({
+            user_id: user.id,
+            coin_balance: amount > 0 ? amount : 0, // Initial balance
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          })
+          .select('*')
+          .single();
+          
+        if (createError) {
+          console.error("Error creating wallet:", createError);
+          throw new Error(createError.message || "Failed to create wallet");
+        }
+        
+        // Record transaction for new wallet
+        await supabase
+          .from('coin_transactions')
+          .insert({
+            user_id: user.id,
+            amount: amount,
+            transaction_type: transactionType,
+            description: description
+          });
+          
+        queryClient.invalidateQueries({ queryKey: ['wallet'] });
+        
+        return {
+          success: true,
+          message: "New wallet created and transaction completed",
+          newBalance: amount > 0 ? amount : 0
+        };
       }
-
-      const wallet = wallets[0];
       
       // Check balance for deductions
-      if (amount < 0 && wallet.coin_balance < Math.abs(amount)) {
+      if (amount < 0 && walletData.coin_balance < Math.abs(amount)) {
         return {
           success: false,
           message: "Insufficient coins in wallet",
-          newBalance: wallet.coin_balance
+          newBalance: walletData.coin_balance
         };
       }
 
+      // Calculate new balance
+      const newBalance = walletData.coin_balance + amount;
+      
       // Update wallet balance
-      const newBalance = wallet.coin_balance + amount;
       const { error: updateError } = await supabase
         .from('user_wallets')
-        .update({ 
+        .update({
           coin_balance: newBalance,
           updated_at: new Date().toISOString()
         })
-        .eq('user_id', user.id);
+        .eq('id', walletData.id); // Use the wallet ID for more precise targeting
       
       if (updateError) {
-        console.error("Update error:", updateError);
+        console.error("Error updating wallet:", updateError);
         throw new Error(updateError.message || "Failed to update wallet balance");
       }
       
@@ -69,14 +102,14 @@ export const useCoinTransaction = () => {
         .from('coin_transactions')
         .insert({
           user_id: user.id,
-          amount,
+          amount: amount,
           transaction_type: transactionType,
-          description
+          description: description
         });
         
       if (transactionError) {
-        console.error("Transaction recording error:", transactionError);
-        // Don't throw here, just log the error since the balance was already updated
+        console.error("Error recording transaction:", transactionError);
+        // Don't throw here since the balance was updated successfully
       }
       
       // Refresh wallet data in UI

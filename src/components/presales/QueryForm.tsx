@@ -55,7 +55,7 @@ const QueryForm = ({ onQuerySubmit }: QueryFormProps) => {
       
       const { data: wallets, error: walletError } = await supabase
         .from('user_wallets')
-        .select('coin_balance')
+        .select('*')
         .eq('user_id', user.id);
 
       if (walletError) throw walletError;
