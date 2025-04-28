@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -13,6 +12,8 @@ import { StudentOption } from './registration/StudentOption';
 import { PersonalInfoFields } from './registration/PersonalInfoFields';
 import { PasswordFields } from './registration/PasswordFields';
 import { countries } from '@/data/countries';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Coins } from "lucide-react";
 
 interface RegisterFormProps {
   onSuccess: () => void;
@@ -39,7 +40,6 @@ export const RegisterForm = ({ onSuccess, setLoginEmail }: RegisterFormProps) =>
 
   const onSubmit = async (values: z.infer<typeof registerSchema>) => {
     try {
-      // Format phone number with country code if provided
       let formattedPhoneNumber = values.phoneNumber;
       if (values.phoneNumber && values.country) {
         const country = countries.find(c => c.code === values.country);
@@ -48,13 +48,11 @@ export const RegisterForm = ({ onSuccess, setLoginEmail }: RegisterFormProps) =>
         }
       }
 
-      // Check if the user already exists
       const { data: existingAuth, error: authError } = await supabase.auth.signInWithPassword({
         email: values.email,
         password: "dummy-password-for-check",
       });
-      
-      // If no error about invalid credentials, it means the email exists
+
       if (!authError || authError.message !== "Invalid login credentials") {
         toast({
           title: "Registration Failed",
@@ -64,7 +62,6 @@ export const RegisterForm = ({ onSuccess, setLoginEmail }: RegisterFormProps) =>
         return;
       }
 
-      // Register the user with Supabase Auth
       const { data, error } = await supabase.auth.signUp({
         email: values.email,
         password: values.password,
@@ -87,7 +84,6 @@ export const RegisterForm = ({ onSuccess, setLoginEmail }: RegisterFormProps) =>
         return;
       }
 
-      // Assign user role based on student status
       if (data.user) {
         const roleToAssign = values.isStudent ? 'student' : 'user';
         const { error: roleError } = await supabase
@@ -106,14 +102,11 @@ export const RegisterForm = ({ onSuccess, setLoginEmail }: RegisterFormProps) =>
           });
         }
         
-        // Also track registration in Edge Function for analytics
         try {
-          // Use the constant URL instead of accessing supabaseUrl property
           const response = await fetch("https://iympksahhwfpirxtoljs.supabase.co/functions/v1/track-registration", {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              // Use the constant API key from the imports
               'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml5bXBrc2FoaHdmcGlyeHRvbGpzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU2NTM4NzksImV4cCI6MjA2MTIyOTg3OX0.-cNhRxmkcpnoor42GieeKhuHwYWUqTCBqWCxDjwcpAs`
             },
             body: JSON.stringify({
@@ -128,17 +121,19 @@ export const RegisterForm = ({ onSuccess, setLoginEmail }: RegisterFormProps) =>
         } catch (trackError) {
           console.warn('Error tracking registration:', trackError);
         }
+
+        toast({
+          title: "🎉 Welcome!",
+          description: "You've received 100 coins to start your journey! You can now login and start using AI consultancy services.",
+        });
+
+        setLoginEmail(values.email);
+        onSuccess();
+        
+        setTimeout(() => {
+          navigate("/presales-consultancy");
+        }, 2000);
       }
-
-      // If registration was successful
-      toast({
-        title: "Registration Successful",
-        description: "You can now login with your credentials",
-      });
-
-      setLoginEmail(values.email);
-      onSuccess();
-
     } catch (error: any) {
       console.error("Error in registration:", error);
       toast({
@@ -150,13 +145,23 @@ export const RegisterForm = ({ onSuccess, setLoginEmail }: RegisterFormProps) =>
   };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <StudentOption control={form.control} />
-        <PersonalInfoFields control={form.control} isStudent={form.watch("isStudent")} />
-        <PasswordFields control={form.control} />
-        <Button type="submit" className="w-full">Register</Button>
-      </form>
-    </Form>
+    <>
+      <Alert className="mb-6 bg-green-50">
+        <Coins className="h-4 w-4" />
+        <AlertTitle>Special Welcome Offer!</AlertTitle>
+        <AlertDescription>
+          Register now and receive 100 free coins - enough for 4 AI consultations!
+        </AlertDescription>
+      </Alert>
+
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <StudentOption control={form.control} />
+          <PersonalInfoFields control={form.control} isStudent={form.watch("isStudent")} />
+          <PasswordFields control={form.control} />
+          <Button type="submit" className="w-full">Register</Button>
+        </form>
+      </Form>
+    </>
   );
 };
