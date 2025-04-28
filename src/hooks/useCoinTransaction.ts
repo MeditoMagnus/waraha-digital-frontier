@@ -23,18 +23,23 @@ export const useCoinTransaction = () => {
       }
       
       // Get user's wallet
-      const { data: wallet, error: walletError } = await supabase
+      const { data: wallets, error: walletError } = await supabase
         .from('user_wallets')
         .select('coin_balance')
-        .eq('user_id', user.id)
-        .maybeSingle();
+        .eq('user_id', user.id);
 
-      if (walletError) throw walletError;
+      if (walletError) {
+        console.error("Wallet fetch error:", walletError);
+        throw new Error(walletError.message || "Failed to fetch wallet");
+      }
       
-      if (!wallet) {
+      // Check if wallet exists
+      if (!wallets || wallets.length === 0) {
         throw new Error("Wallet not found");
       }
 
+      const wallet = wallets[0];
+      
       // Check balance for deductions
       if (amount < 0 && wallet.coin_balance < Math.abs(amount)) {
         return {
@@ -46,19 +51,17 @@ export const useCoinTransaction = () => {
 
       // Update wallet balance
       const newBalance = wallet.coin_balance + amount;
-      const { data: updatedWallet, error: updateError } = await supabase
+      const { error: updateError } = await supabase
         .from('user_wallets')
-        .update({ coin_balance: newBalance })
-        .eq('user_id', user.id)
-        .select('coin_balance')
-        .maybeSingle();
+        .update({ 
+          coin_balance: newBalance,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', user.id);
       
       if (updateError) {
-        throw updateError;
-      }
-      
-      if (!updatedWallet) {
-        throw new Error("Failed to update wallet balance");
+        console.error("Update error:", updateError);
+        throw new Error(updateError.message || "Failed to update wallet balance");
       }
       
       // Record transaction
@@ -72,7 +75,8 @@ export const useCoinTransaction = () => {
         });
         
       if (transactionError) {
-        console.error("Failed to record transaction:", transactionError);
+        console.error("Transaction recording error:", transactionError);
+        // Don't throw here, just log the error since the balance was already updated
       }
       
       // Refresh wallet data in UI
@@ -81,7 +85,7 @@ export const useCoinTransaction = () => {
       return {
         success: true,
         message: "Transaction completed successfully",
-        newBalance: updatedWallet.coin_balance
+        newBalance: newBalance
       };
       
     } catch (error: any) {

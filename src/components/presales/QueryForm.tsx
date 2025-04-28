@@ -53,15 +53,14 @@ const QueryForm = ({ onQuerySubmit }: QueryFormProps) => {
         throw new Error("User not authenticated");
       }
       
-      const { data: wallet, error: walletError } = await supabase
+      const { data: wallets, error: walletError } = await supabase
         .from('user_wallets')
         .select('coin_balance')
-        .eq('user_id', user.id)
-        .maybeSingle();
+        .eq('user_id', user.id);
 
       if (walletError) throw walletError;
 
-      if (!wallet || wallet.coin_balance < 25) {
+      if (!wallets || wallets.length === 0 || wallets[0].coin_balance < 25) {
         toast({
           title: "Insufficient Coins",
           description: "You need 25 coins to generate an AI response. Please purchase more coins.",

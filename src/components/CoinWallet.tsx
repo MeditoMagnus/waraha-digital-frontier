@@ -29,14 +29,18 @@ const CoinWallet = ({ onPurchaseClick }: CoinWalletProps) => {
         const { data, error } = await supabase
           .from('user_wallets')
           .select('*')
-          .eq('user_id', user.id)
-          .maybeSingle();
+          .eq('user_id', user.id);
         
         if (error) {
           throw error;
         }
         
-        return data || { coin_balance: 0 };
+        if (!data || data.length === 0) {
+          // No wallet found, return default
+          return { coin_balance: 0 };
+        }
+        
+        return data[0];
       } catch (error: any) {
         console.error("Wallet fetch error:", error);
         toast({
