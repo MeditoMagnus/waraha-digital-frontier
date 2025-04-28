@@ -3,10 +3,10 @@ import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Send, Loader2 } from "lucide-react";
-import { useProcessQuery } from "@/hooks/useProcessQuery";
-import { useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
+import { useCoinTransaction } from "@/hooks/useCoinTransaction";
 
 interface QueryFormProps {
   onQuerySubmit: (response: string) => void;
@@ -14,9 +14,10 @@ interface QueryFormProps {
 
 const QueryForm = ({ onQuerySubmit }: QueryFormProps) => {
   const [query, setQuery] = React.useState('');
-  const queryClient = useQueryClient();
+  const [isLoading, setIsLoading] = React.useState(false);
   const { toast } = useToast();
-  const { processQuery, isLoading } = useProcessQuery(onQuerySubmit);
+  const queryClient = useQueryClient();
+  const { processTransaction } = useCoinTransaction();
 
   const handleSubmit = async () => {
     if (!query.trim()) {
@@ -28,24 +29,88 @@ const QueryForm = ({ onQuerySubmit }: QueryFormProps) => {
       return;
     }
     
-    // Get latest wallet data before proceeding
-    await queryClient.invalidateQueries({ queryKey: ['wallet'] });
+    setIsLoading(true);
     
-    // Check if user is authenticated
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
+    try {
+      // Get latest wallet data before proceeding
+      await queryClient.invalidateQueries({ queryKey: ['wallet'] });
+      
+      // Check if user is authenticated
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({
+          title: "Authentication Required",
+          description: "Please log in to use the AI consultant.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Get user's wallet
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      const { data: wallet, error: walletError } = await supabase
+        .from('user_wallets')
+        .select('coin_balance')
+        .eq('user_id', user?.id)
+        .maybeSingle();
+
+      if (walletError) throw walletError;
+
+      if (!wallet || wallet.coin_balance < 25) {
+        toast({
+          title: "Insufficient Coins",
+          description: "You need 25 coins to generate an AI response. Please purchase more coins.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Get response from AI
+      const { data, error } = await supabase.functions.invoke('chat-with-ai', {
+        body: { query },
+      });
+
+      if (error) throw error;
+      
+      if (data && data.response) {
+        // Process the coin transaction
+        const transactionResult = await processTransaction({
+          amount: -25, 
+          description: 'AI consultation cost',
+          transactionType: 'usage'
+        });
+        
+        if (!transactionResult.success) {
+          toast({
+            title: "Transaction Failed",
+            description: transactionResult.message,
+            variant: "destructive",
+          });
+          return;
+        }
+        
+        // Process successful response
+        onQuerySubmit(data.response);
+        setQuery('');
+        
+        toast({
+          title: "Success",
+          description: "Response generated successfully. 25 coins have been deducted.",
+        });
+      } else {
+        throw new Error("No response received from AI");
+      }
+    } catch (error: any) {
+      console.error('Error:', error);
       toast({
-        title: "Authentication Required",
-        description: "Please log in to use the AI consultant.",
+        title: "Error",
+        description: error.message || "Failed to generate response. Please try again.",
         variant: "destructive",
       });
-      return;
-    }
-    
-    const response = await processQuery(query);
-    if (response) {
-      setQuery('');
-      // Force refresh wallet data after successful query
+    } finally {
+      setIsLoading(false);
+      // Force refresh wallet data after query attempt
       queryClient.invalidateQueries({ queryKey: ['wallet'] });
     }
   };

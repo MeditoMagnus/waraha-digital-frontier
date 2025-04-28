@@ -47,7 +47,7 @@ const CoinWallet = ({ onPurchaseClick }: CoinWalletProps) => {
         return { coin_balance: 0 };
       }
     },
-    refetchInterval: 3000, // Refetch every 3 seconds to keep the balance updated
+    refetchInterval: 5000, // Refetch every 5 seconds to keep the balance updated
     refetchOnWindowFocus: true, // Refetch when the window regains focus
     staleTime: 0, // Consider data immediately stale so it always refreshes
   });
