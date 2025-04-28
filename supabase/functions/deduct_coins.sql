@@ -3,6 +3,7 @@ CREATE OR REPLACE FUNCTION public.deduct_coins(amount INTEGER, description TEXT)
 RETURNS boolean
 LANGUAGE plpgsql
 SECURITY DEFINER
+SET search_path = public
 AS $$
 DECLARE
   current_balance INTEGER;

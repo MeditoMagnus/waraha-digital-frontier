@@ -6,6 +6,7 @@ import { Send, Loader2 } from "lucide-react";
 import { useProcessQuery } from "@/hooks/useProcessQuery";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface QueryFormProps {
   onQuerySubmit: (response: string) => void;
@@ -14,15 +15,30 @@ interface QueryFormProps {
 const QueryForm = ({ onQuerySubmit }: QueryFormProps) => {
   const [query, setQuery] = React.useState('');
   const queryClient = useQueryClient();
+  const { toast } = useToast();
   const { processQuery, isLoading } = useProcessQuery(onQuerySubmit);
 
   const handleSubmit = async () => {
+    if (!query.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter your technical query first.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     // Get latest wallet data before proceeding
     await queryClient.invalidateQueries({ queryKey: ['wallet'] });
     
     // Check if user is authenticated
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to use the AI consultant.",
+        variant: "destructive",
+      });
       return;
     }
     
@@ -46,7 +62,7 @@ const QueryForm = ({ onQuerySubmit }: QueryFormProps) => {
       <Button 
         onClick={handleSubmit} 
         className="w-full flex items-center justify-center gap-2"
-        disabled={isLoading}
+        disabled={isLoading || !query.trim()}
       >
         {isLoading ? (
           <>

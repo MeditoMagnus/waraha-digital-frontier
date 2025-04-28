@@ -62,7 +62,10 @@ export const useProcessQuery = (onSuccess: (response: string) => void) => {
             description: 'AI consultation cost' 
           });
         
-        if (deductError) throw deductError;
+        if (deductError) {
+          console.error("Deduct coins error:", deductError);
+          throw new Error(`Failed to deduct coins: ${deductError.message}`);
+        }
         
         if (!deductResult) {
           throw new Error("Failed to deduct coins. You may not have sufficient balance.");

@@ -10,6 +10,10 @@ interface PurchaseOption {
   requests: number;
 }
 
+interface PurchaseCoinsProps {
+  onPurchaseComplete?: () => void;
+}
+
 const calculateRequests = (coins: number): number => {
   if (coins <= 1000) {
     return Math.floor(coins / 25); // Each request costs 25 coins
@@ -29,7 +33,7 @@ const purchaseOptions: PurchaseOption[] = [
   { amount: 20, coins: 2000, requests: calculateRequests(2000) }
 ];
 
-const PurchaseCoins = () => {
+const PurchaseCoins = ({ onPurchaseComplete }: PurchaseCoinsProps) => {
   const { toast } = useToast();
 
   const handlePurchase = async (option: PurchaseOption) => {
@@ -39,6 +43,11 @@ const PurchaseCoins = () => {
       });
 
       if (error) throw error;
+
+      // Call the onPurchaseComplete callback if provided
+      if (onPurchaseComplete) {
+        onPurchaseComplete();
+      }
 
       // Redirect to Stripe checkout
       window.location.href = data.url;
@@ -68,4 +77,3 @@ const PurchaseCoins = () => {
 };
 
 export default PurchaseCoins;
-
