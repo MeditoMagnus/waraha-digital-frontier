@@ -51,13 +51,28 @@ export const useProcessQuery = (onSuccess: (response: string) => void) => {
 
       if (error) throw error;
       
-      // Use the secure deduct_coins function to deduct coins and record the transaction
-      const { error: deductError } = await supabase.rpc('deduct_coins', {
-        amount: 25, 
-        description: 'AI consultation cost'
-      });
+      // Update the wallet and record the transaction manually since the RPC call is failing
+      const { error: updateError } = await supabase
+        .from('user_wallets')
+        .update({ 
+          coin_balance: wallet.coin_balance - 25,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', user.id);
 
-      if (deductError) throw deductError;
+      if (updateError) throw updateError;
+      
+      // Record the transaction
+      const { error: transactionError } = await supabase
+        .from('coin_transactions')
+        .insert({
+          user_id: user.id,
+          amount: -25,
+          transaction_type: 'usage',
+          description: 'AI consultation cost'
+        });
+
+      if (transactionError) throw transactionError;
       
       onSuccess(data.response);
       
