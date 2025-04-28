@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, LogOut } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -13,6 +13,7 @@ import PurchaseCoins from '@/components/PurchaseCoins';
 import QueryForm from '@/components/presales/QueryForm';
 import ResponseDisplay from '@/components/presales/ResponseDisplay';
 import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 
 const PresalesConsultancy = () => {
   const [response, setResponse] = useState('');
@@ -21,6 +22,7 @@ const PresalesConsultancy = () => {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   
   const userName = localStorage.getItem('userName');
   const userRole = localStorage.getItem('userRole');
@@ -99,7 +101,9 @@ const PresalesConsultancy = () => {
         </Button>
       </div>
       
-      <CoinWallet onPurchaseClick={() => setShowPurchaseDialog(true)} />
+      <CoinWallet 
+        onPurchaseClick={() => setShowPurchaseDialog(true)}
+      />
       
       <Card className="mb-8">
         <CardHeader>

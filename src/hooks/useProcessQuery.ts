@@ -2,10 +2,12 @@
 import { useState } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 
 export const useProcessQuery = (onSuccess: (response: string) => void) => {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const processQuery = async (query: string) => {
     if (!query.trim()) {
@@ -84,6 +86,9 @@ export const useProcessQuery = (onSuccess: (response: string) => void) => {
         console.error("Error during transaction insert:", insertErr);
         // Continue with the flow even if transaction logging fails
       }
+      
+      // Important: Invalidate the wallet query to refresh the UI
+      queryClient.invalidateQueries({ queryKey: ['wallet'] });
       
       onSuccess(data.response);
       

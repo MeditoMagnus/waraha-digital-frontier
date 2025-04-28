@@ -14,7 +14,7 @@ interface CoinWalletProps {
 const CoinWallet = ({ onPurchaseClick }: CoinWalletProps) => {
   const { toast } = useToast();
 
-  const { data: walletData, isLoading } = useQuery({
+  const { data: walletData, isLoading, refetch } = useQuery({
     queryKey: ['wallet'],
     queryFn: async () => {
       try {
@@ -45,7 +45,8 @@ const CoinWallet = ({ onPurchaseClick }: CoinWalletProps) => {
         });
         return { coin_balance: 0 };
       }
-    }
+    },
+    refetchInterval: 5000, // Refetch every 5 seconds to keep the balance updated
   });
 
   return (
@@ -65,7 +66,10 @@ const CoinWallet = ({ onPurchaseClick }: CoinWalletProps) => {
             </span>
           </div>
           <Button 
-            onClick={onPurchaseClick}
+            onClick={() => {
+              onPurchaseClick();
+              refetch(); // Refresh wallet data when purchase dialog opens
+            }}
             className="w-full"
           >
             Buy More Coins
