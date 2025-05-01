@@ -57,6 +57,33 @@ export type Database = {
         }
         Relationships: []
       }
+      technical_queries: {
+        Row: {
+          company_name: string | null
+          company_size: string | null
+          created_at: string
+          email: string
+          id: string
+          query: string
+        }
+        Insert: {
+          company_name?: string | null
+          company_size?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          query: string
+        }
+        Update: {
+          company_name?: string | null
+          company_size?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          query?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
