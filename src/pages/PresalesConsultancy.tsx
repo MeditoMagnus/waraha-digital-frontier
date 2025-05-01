@@ -1,117 +1,44 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, LogOut } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import CoinWallet from '@/components/CoinWallet';
-import PurchaseCoins from '@/components/PurchaseCoins';
 import QueryForm from '@/components/presales/QueryForm';
 import ResponseDisplay from '@/components/presales/ResponseDisplay';
-import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 
 const PresalesConsultancy = () => {
   const [response, setResponse] = useState('');
   const [activeTab, setActiveTab] = useState('query');
-  const [showPurchaseDialog, setShowPurchaseDialog] = useState(false);
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const { toast } = useToast();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const queryClient = useQueryClient();
   
+  // Get stored user information
   const userName = localStorage.getItem('userName') || 'User';
+  const companyName = localStorage.getItem('companyName') || 'your company';
   
   useEffect(() => {
-    // Check if user is authenticated
-    const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        toast({
-          title: "Access Denied",
-          description: "Please login to access the AI consultant",
-          variant: "destructive",
-        });
-        navigate('/login');
-      } else {
-        // Force refresh wallet data when component loads
-        queryClient.invalidateQueries({ queryKey: ['wallet'] });
-      }
-    };
-    
-    checkAuth();
-    
-    // Set up auth state change listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (event === 'SIGNED_OUT' || !session) {
-          navigate('/login');
-        }
-      }
-    );
-    
-    return () => {
-      subscription.unsubscribe();
-    };
+    // Check if user has provided their information
+    const userEmail = localStorage.getItem('userEmail');
+    if (!userEmail) {
+      toast({
+        title: "Access Denied",
+        description: "Please provide your information to access the AI consultant",
+        variant: "destructive",
+      });
+      navigate('/consultant-access');
+    }
   }, [navigate, toast, queryClient]);
 
   const handleResponse = (newResponse: string) => {
     setResponse(newResponse);
     setActiveTab('response');
-    
-    // Force refresh wallet data when response is received
-    queryClient.invalidateQueries({ queryKey: ['wallet'] });
-  };
-  
-  const handleLogout = async () => {
-    try {
-      setIsLoggingOut(true);
-      
-      // Sign out from Supabase
-      const { error } = await supabase.auth.signOut();
-      
-      if (error) {
-        throw error;
-      }
-      
-      // Clear local storage
-      localStorage.removeItem('userRole');
-      localStorage.removeItem('userName');
-      localStorage.removeItem('userEmail');
-      
-      toast({
-        title: "Logged Out",
-        description: "You have been logged out successfully",
-      });
-      
-      // Navigate to home page
-      navigate('/');
-    } catch (error: any) {
-      console.error('Logout error:', error);
-      toast({
-        title: "Logout Failed",
-        description: error.message || "Failed to log out. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoggingOut(false);
-    }
-  };
-
-  const handlePurchaseComplete = () => {
-    setShowPurchaseDialog(false);
-    
-    // Force refresh wallet data after purchase
-    queryClient.invalidateQueries({ queryKey: ['wallet'] });
-    
-    toast({
-      title: "Purchase Successful",
-      description: "Your coins have been added to your wallet.",
-    });
   };
 
   return (
@@ -124,28 +51,22 @@ const PresalesConsultancy = () => {
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Waraha Group
         </Link>
-        
-        <Button variant="ghost" onClick={handleLogout} disabled={isLoggingOut}>
-          {isLoggingOut ? (
-            <>Processing...</>
-          ) : (
-            <>
-              <LogOut className="mr-2 h-4 w-4" />
-              Logout
-            </>
-          )}
-        </Button>
       </div>
       
-      <CoinWallet 
-        onPurchaseClick={() => setShowPurchaseDialog(true)}
-      />
+      <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 text-blue-800 mb-8">
+        <h2 className="text-lg font-medium mb-2">Welcome, {userName}!</h2>
+        <p>
+          You can now ask our AI Technical Consultant any technical questions related to 
+          IT services, software development, cloud infrastructure, or any other technical 
+          needs for {companyName}.
+        </p>
+      </div>
       
       <Card className="mb-8">
         <CardHeader>
           <CardTitle className="text-4xl text-center">AI Technical Consultant</CardTitle>
           <CardDescription className="text-center">
-            Welcome, {userName}! Get expert technical advice on software, IT services, architecture, pricing, 
+            Get expert technical advice on software, IT services, architecture, pricing, 
             configurations, or integrations - powered by advanced AI.
           </CardDescription>
         </CardHeader>
@@ -166,18 +87,6 @@ const PresalesConsultancy = () => {
           </Tabs>
         </CardContent>
       </Card>
-
-      <Dialog open={showPurchaseDialog} onOpenChange={setShowPurchaseDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Purchase Coins</DialogTitle>
-            <DialogDescription>
-              Select an amount of coins to purchase. Each AI consultation costs 25 coins.
-            </DialogDescription>
-          </DialogHeader>
-          <PurchaseCoins onPurchaseComplete={handlePurchaseComplete} />
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };

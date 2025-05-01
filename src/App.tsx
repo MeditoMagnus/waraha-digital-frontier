@@ -7,8 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import PresalesConsultancy from "./pages/PresalesConsultancy";
-import Login from "./pages/Login";
-import ResetPassword from "./pages/ResetPassword";
+import SimpleConsultantAccess from "./pages/SimpleConsultantAccess";
 
 const queryClient = new QueryClient();
 
@@ -21,8 +20,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/presales-consultancy" element={<PresalesConsultancy />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/consultant-access" element={<SimpleConsultantAccess />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

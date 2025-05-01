@@ -1,8 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import { Menu, X, LogOut } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
 import { useToast } from "@/hooks/use-toast";
 import { BrandLogo } from './navbar/BrandLogo';
 import { DesktopNav } from './navbar/DesktopNav';
@@ -12,40 +11,8 @@ import { NavLinkType } from './navbar/types';
 const Navbar: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-  
-  // Check login status whenever component mounts
-  useEffect(() => {
-    const checkAuth = async () => {
-      // Check Supabase auth for users
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        setIsLoggedIn(true);
-      } else {
-        setIsLoggedIn(false);
-      }
-    };
-    
-    checkAuth();
-    
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (event === 'SIGNED_IN') {
-          setIsLoggedIn(true);
-        } else if (event === 'SIGNED_OUT') {
-          setIsLoggedIn(false);
-        }
-      }
-    );
-    
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -56,41 +23,6 @@ const Navbar: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const handleLogout = async () => {
-    try {
-      setIsLoggingOut(true);
-      
-      // Clear local storage
-      localStorage.removeItem('userRole');
-      localStorage.removeItem('userName');
-      localStorage.removeItem('userEmail');
-      
-      // Sign out from Supabase
-      const { error } = await supabase.auth.signOut();
-      
-      if (error) {
-        throw error;
-      }
-      
-      toast({
-        title: "Logged Out",
-        description: "You have been logged out successfully",
-      });
-      
-      // Navigate to home
-      navigate('/');
-    } catch (error: any) {
-      console.error('Logout error:', error);
-      toast({
-        title: "Logout Failed",
-        description: error.message || "Failed to log out. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoggingOut(false);
-    }
-  };
-
   const navLinks: NavLinkType[] = [
     { name: 'Home', href: '#home' },
     { name: 'About', href: '#about' },
@@ -98,16 +30,14 @@ const Navbar: React.FC = () => {
     { name: 'Why Us', href: '#why-us' },
     { name: 'Contact', href: '#contact' },
     { 
-      name: isLoggedIn ? 'AI IT Consultant' : 'AI IT Consultant', 
-      href: isLoggedIn ? '/presales-consultancy' : '/login', 
+      name: 'AI IT Consultant', 
+      href: '/consultant-access', 
       isPageLink: true,
       isPremium: true
     },
   ];
   
-  const authLinks: NavLinkType[] = isLoggedIn ? [
-    { name: 'Logout', href: '#', isLogout: true, icon: LogOut, onClick: handleLogout }
-  ] : [];
+  const authLinks: NavLinkType[] = [];
 
   return (
     <nav 

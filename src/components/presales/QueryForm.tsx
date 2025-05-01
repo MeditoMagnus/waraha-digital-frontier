@@ -5,7 +5,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Send, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { useQueryClient } from "@tanstack/react-query";
 
 interface QueryFormProps {
   onQuerySubmit: (response: string) => void;
@@ -15,7 +14,6 @@ const QueryForm = ({ onQuerySubmit }: QueryFormProps) => {
   const [query, setQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-  const queryClient = useQueryClient();
 
   const handleSubmit = async () => {
     if (!query.trim()) {
@@ -30,23 +28,29 @@ const QueryForm = ({ onQuerySubmit }: QueryFormProps) => {
     setIsLoading(true);
     
     try {
-      console.log("Checking authentication status");
-      // Check if user is authenticated
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
+      // Get user information from localStorage
+      const userEmail = localStorage.getItem('userEmail');
+      const companyName = localStorage.getItem('companyName');
+      const companySize = localStorage.getItem('companySize');
+      
+      if (!userEmail) {
         toast({
-          title: "Authentication Required",
-          description: "Please log in to use the AI consultant.",
+          title: "Information Required",
+          description: "Please provide your information to use the AI consultant.",
           variant: "destructive",
         });
         setIsLoading(false);
         return;
       }
 
-      console.log("Sending query to edge function");
-      // Call our edge function that handles both AI response and coin deduction
+      // Call our edge function for AI query
       const { data, error } = await supabase.functions.invoke('ai-query', {
-        body: { query },
+        body: { 
+          query,
+          userEmail,
+          companyName,
+          companySize
+        },
       });
 
       if (error) {
@@ -64,38 +68,23 @@ const QueryForm = ({ onQuerySubmit }: QueryFormProps) => {
 
       console.log("Query processed successfully:", data);
       
-      // Force refresh wallet data after successful query
-      queryClient.invalidateQueries({ queryKey: ['wallet'] });
-      
       // Process successful response
       onQuerySubmit(data.response);
       setQuery('');
       
-      // Show success toast with updated balance
+      // Show success toast
       toast({
         title: "Success",
-        description: `Response generated successfully. Your new balance is ${data.transaction.newBalance} coins.`,
+        description: "Response generated successfully.",
       });
     } catch (error: any) {
       console.error('Error:', error);
       
-      // More specific error messages based on error content
-      let errorMessage = "Failed to generate response. Please try again.";
-      
-      if (error.message.includes("Insufficient coins")) {
-        errorMessage = "You don't have enough coins. Please purchase more coins to continue.";
-      } else if (error.message.includes("authentication") || error.message.includes("User not authenticated")) {
-        errorMessage = "Authentication error. Please log in again.";
-      }
-      
       toast({
         title: "Error",
-        description: errorMessage,
+        description: error.message || "Failed to generate response. Please try again.",
         variant: "destructive",
       });
-      
-      // Force refresh wallet data even after error to ensure accuracy
-      queryClient.invalidateQueries({ queryKey: ['wallet'] });
     } finally {
       setIsLoading(false);
     }
@@ -127,6 +116,16 @@ const QueryForm = ({ onQuerySubmit }: QueryFormProps) => {
           </>
         )}
       </Button>
+      
+      <div className="text-sm text-muted-foreground">
+        <p className="mb-2">Ask anything you need for your IT project or technical needs:</p>
+        <ul className="list-disc pl-5 space-y-1">
+          <li>Which cloud providers should I use for my e-commerce site?</li>
+          <li>What tech stack is best for building a CRM system?</li>
+          <li>How can I migrate my on-premise database to the cloud?</li>
+          <li>What are the security considerations for my mobile app?</li>
+        </ul>
+      </div>
     </div>
   );
 };
