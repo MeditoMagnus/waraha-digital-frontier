@@ -3,6 +3,9 @@ import React, { useRef } from 'react';
 import { useInView } from '../hooks/useInView';
 import { Phone, Mail, MapPin, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import AssessmentForm from './AssessmentForm';
 
 const ContactSection: React.FC = () => {
   const contactRef = useRef<HTMLDivElement>(null);
@@ -30,19 +33,56 @@ const ContactSection: React.FC = () => {
             <h3 className="text-2xl font-serif mb-6 text-center">Get a Free IT Assessment</h3>
             <p className="text-gray-300 text-center max-w-2xl mb-8">
               We'd love to hear about your IT challenges and discuss how Waraha Group can help transform your business. 
-              Click below to send us an email and we'll get back to you as soon as possible.
+              Request a one-to-one assessment with our experts or send us an email.
             </p>
             
-            <Button
-              onClick={handleMailClick}
-              variant="default"
-              size="lg"
-              className="bg-waraha-gold hover:bg-waraha-gold/90 text-waraha-midnight font-semibold rounded-md px-8 py-6 flex items-center justify-center gap-3"
-            >
-              <Mail size={20} />
-              Mail Us Now
-              <ExternalLink size={16} />
-            </Button>
+            <div className="flex flex-col md:flex-row gap-4 w-full max-w-md">
+              {/* Assessment Request Button - Dialog for desktop */}
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button 
+                    className="bg-waraha-gold hover:bg-waraha-gold/90 text-waraha-midnight font-semibold rounded-md px-4 py-2 md:flex-1 hidden md:flex items-center justify-center"
+                  >
+                    Request Assessment
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>Request One-to-One Assessment</DialogTitle>
+                  </DialogHeader>
+                  <AssessmentForm />
+                </DialogContent>
+              </Dialog>
+              
+              {/* Assessment Request Button - Sheet for mobile */}
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button 
+                    className="bg-waraha-gold hover:bg-waraha-gold/90 text-waraha-midnight font-semibold rounded-md px-4 py-2 md:flex-1 md:hidden flex items-center justify-center"
+                  >
+                    Request Assessment
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="bottom" className="h-[90vh] overflow-y-auto">
+                  <SheetHeader>
+                    <SheetTitle>Request One-to-One Assessment</SheetTitle>
+                  </SheetHeader>
+                  <div className="mt-4">
+                    <AssessmentForm />
+                  </div>
+                </SheetContent>
+              </Sheet>
+              
+              <Button
+                onClick={handleMailClick}
+                variant="outline"
+                className="border-waraha-gold text-waraha-gold hover:bg-waraha-gold/10 font-semibold rounded-md px-4 py-2 md:flex-1 flex items-center justify-center gap-2"
+              >
+                <Mail size={20} />
+                Email Us
+                <ExternalLink size={16} />
+              </Button>
+            </div>
             
           </div>
           
