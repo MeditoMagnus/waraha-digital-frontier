@@ -109,7 +109,7 @@ const AssessmentForm: React.FC = () => {
       
       // Reset form and show success message
       form.reset();
-      setFile(null);
+      clearFile(); // Fixed: Using clearFile from useFileUpload instead of setFile
       toast({
         title: "Assessment Request Submitted",
         description: "We'll get back to you shortly with a personalized assessment.",
