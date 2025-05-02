@@ -32,7 +32,7 @@ const HeroSection: React.FC = () => {
   };
 
   const goToAIConsultant = () => {
-    navigate('/login');
+    navigate('/consultant-access');
   };
 
   return (

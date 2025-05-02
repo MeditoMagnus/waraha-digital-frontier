@@ -83,15 +83,16 @@ const AssessmentForm: React.FC = () => {
         filePath = fileData?.path;
       }
       
-      // Get the Supabase anonymous key
-      const supabaseKey = supabase.auth.getSession().then(({ data }) => data.session?.access_token);
+      // Get the Supabase session
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData?.session?.access_token;
       
       // Submit form data to the edge function with authorization header
       const response = await fetch('https://iympksahhwfpirxtoljs.supabase.co/functions/v1/submit-assessment', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${await supabaseKey || supabase.supabaseKey}`,
+          'Authorization': accessToken ? `Bearer ${accessToken}` : '',
         },
         body: JSON.stringify({
           name: values.name,
