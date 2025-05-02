@@ -5,6 +5,7 @@ import { MessageSquare, Download, Calendar, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import FormattedResponse from "@/components/FormattedResponse";
 import { generateResponsePDF } from "@/utils/pdfGenerator";
+import { toast } from "@/hooks/use-toast";
 
 interface ResponseDisplayProps {
   response: string;
@@ -14,11 +15,24 @@ const ResponseDisplay = ({ response }: ResponseDisplayProps) => {
   if (!response) return null;
 
   const handleDownloadPDF = () => {
-    generateResponsePDF(response, "Technical Consultation Analysis");
+    try {
+      generateResponsePDF(response, "Technical Consultation Analysis");
+      toast({
+        title: "Success",
+        description: "PDF successfully downloaded",
+      });
+    } catch (error) {
+      console.error("PDF generation error:", error);
+      toast({
+        title: "Error",
+        description: "Failed to generate PDF. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   // Determine if the response contains certain types of content
-  const hasRoadmap = /\b(roadmap|timeline|phases|steps)\b/i.test(response);
+  const hasRoadmap = /\b(roadmap|timeline|phases|steps|stages|plan|schedule|milestones)\b/i.test(response);
   const hasChecklist = /\b(checklist|task list|to-?do)\b/i.test(response);
   const hasCodeExamples = response.includes('```');
 
@@ -31,13 +45,25 @@ const ResponseDisplay = ({ response }: ResponseDisplayProps) => {
         </div>
         <div className="flex gap-2">
           {hasRoadmap && (
-            <Button variant="outline" size="sm" className="text-xs">
+            <Button variant="outline" size="sm" className="text-xs" onClick={() => {
+              // Scroll to the first roadmap section
+              const roadmapElement = document.querySelector('[class*="RoadmapSection"]');
+              if (roadmapElement) {
+                roadmapElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              }
+            }}>
               <Calendar className="h-4 w-4 mr-1" />
               View Roadmap
             </Button>
           )}
           {hasCodeExamples && (
-            <Button variant="outline" size="sm" className="text-xs">
+            <Button variant="outline" size="sm" className="text-xs" onClick={() => {
+              // Scroll to the first code block
+              const codeElement = document.querySelector('pre');
+              if (codeElement) {
+                codeElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              }
+            }}>
               <FileText className="h-4 w-4 mr-1" />
               Code Samples
             </Button>

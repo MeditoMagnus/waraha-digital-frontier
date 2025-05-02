@@ -9,26 +9,34 @@ interface QuoteSectionProps {
 const QuoteSection: React.FC<QuoteSectionProps> = ({ content }) => {
   // Function to format text with asterisks as bold
   const formatContent = (text: string) => {
-    // Handle both *** and ** patterns for bold text
-    const parts = text.split(/(\*\*\*|\*\*)/);
+    // Create a regex pattern that matches text between ** or *** markers
+    const regex = /(\*\*\*|\*\*)(.*?)(\*\*\*|\*\*)/g;
+    let formattedContent = [];
+    let lastIndex = 0;
+    let match;
     
-    return parts.map((part, index) => {
-      if (part === '***' || part === '**') {
-        // Skip the asterisk markers
-        return null;
+    // Find all matches of bold text patterns
+    while ((match = regex.exec(text)) !== null) {
+      // Add text before the match
+      if (match.index > lastIndex) {
+        formattedContent.push(text.substring(lastIndex, match.index));
       }
       
-      // Check if this part should be bold (follows an asterisk marker)
-      const prevPart = index > 0 ? parts[index - 1] : '';
-      const isBold = prevPart === '***' || prevPart === '**';
+      // Add the bold text
+      formattedContent.push(
+        <strong key={`bold-${match.index}`}>{match[2]}</strong>
+      );
       
-      // If there's content to render
-      if (part.trim()) {
-        return isBold ? <strong key={index}>{part}</strong> : part;
-      }
-      
-      return null;
-    });
+      // Update the lastIndex to skip past this match
+      lastIndex = match.index + match[0].length;
+    }
+    
+    // Add any remaining text
+    if (lastIndex < text.length) {
+      formattedContent.push(text.substring(lastIndex));
+    }
+    
+    return formattedContent.length > 0 ? formattedContent : text;
   };
 
   return (

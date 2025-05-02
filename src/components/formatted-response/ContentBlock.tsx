@@ -1,3 +1,4 @@
+
 import React from 'react';
 import ListSection from './ListSection';
 import CodeBlock from './CodeBlock';
@@ -15,10 +16,15 @@ interface ContentBlockProps {
 const ContentBlock: React.FC<ContentBlockProps> = ({ block }) => {
   const trimmedBlock = block.trim();
 
-  // Check for roadmap/timeline content
-  if (/\b(roadmap|timeline|phases|steps|stages)\b/i.test(trimmedBlock.toLowerCase()) && 
-      /\b(phase|step|stage|week|month|quarter|year)\s*\d+:?/i.test(trimmedBlock)) {
-    return <RoadmapSection content={trimmedBlock} />;
+  // Check for roadmap/timeline content - enhanced detection
+  if (/\b(roadmap|timeline|phases|steps|stages|plan|schedule|milestones)\b/i.test(trimmedBlock.toLowerCase())) {
+    // Look for phase patterns or numbered lists that indicate a roadmap
+    if (
+      /\b(phase|step|stage|week|month|quarter|year)\s*\d+:?/i.test(trimmedBlock) ||
+      /^\d+\.\s+.+/m.test(trimmedBlock)
+    ) {
+      return <RoadmapSection content={trimmedBlock} />;
+    }
   }
 
   // Check for checklist content
@@ -38,8 +44,8 @@ const ContentBlock: React.FC<ContentBlockProps> = ({ block }) => {
     return <QuoteSection content={content} />;
   }
 
-  // Check for lists
-  if (trimmedBlock.match(/^[-*•] .+/m)) {
+  // Check for lists (both bullet and numbered)
+  if (trimmedBlock.match(/^[-*•]|\d+\.\s+/m)) {
     return <ListSection content={trimmedBlock} />;
   }
 
@@ -77,7 +83,11 @@ const ContentBlock: React.FC<ContentBlockProps> = ({ block }) => {
     return <InfoSection type="warning" content={trimmedBlock} />;
   }
 
-  // Default: regular paragraph
+  // Default: regular paragraph - check for bold formatting
+  if (trimmedBlock.includes('**')) {
+    return <QuoteSection content={trimmedBlock} />;
+  }
+
   return <p className="my-4">{trimmedBlock}</p>;
 };
 

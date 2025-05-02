@@ -8,16 +8,53 @@ interface RoadmapSectionProps {
 }
 
 const RoadmapSection: React.FC<RoadmapSectionProps> = ({ content }) => {
-  // Parse phases from content (expected format: Phase 1: Description\nPhase 2: Description)
-  const phases = content.split('\n')
-    .filter(line => line.match(/^(Phase|Step|Stage|Week|Month|Quarter|Year)\s*\d+:?/i))
-    .map(line => {
-      const [title, ...description] = line.split(':');
+  // More robust pattern matching for roadmap phases
+  const parsePhases = () => {
+    // Split the content by lines
+    const lines = content.split('\n');
+    
+    // Match lines that look like phases (multiple patterns)
+    const phaseLines = lines.filter(line => {
+      const trimmed = line.trim();
+      return (
+        // Match "Phase X:" or "Step X:" or similar patterns
+        /^(Phase|Step|Stage|Week|Month|Quarter|Year)\s*\d+:?/i.test(trimmed) ||
+        // Match numbered items like "1. First step"
+        /^\d+\.\s+.+/.test(trimmed)
+      );
+    });
+    
+    return phaseLines.map(line => {
+      // Handle numbered items (e.g., "1. First step")
+      if (/^\d+\.\s+/.test(line)) {
+        const number = line.match(/^\d+/)?.[0] || '';
+        const description = line.replace(/^\d+\.\s+/, '').trim();
+        return {
+          title: `Step ${number}`,
+          description
+        };
+      }
+      
+      // Handle named phases (e.g., "Phase 1: Description")
+      const match = line.match(/^([\w\s]+\d+):?(.*)/i);
+      if (match) {
+        return {
+          title: match[1].trim(),
+          description: match[2].trim()
+        };
+      }
+      
       return {
-        title: title.trim(),
-        description: description.join(':').trim()
+        title: 'Step',
+        description: line.trim()
       };
     });
+  };
+  
+  const phases = parsePhases();
+
+  // Don't render if no phases were found
+  if (phases.length === 0) return null;
 
   return (
     <div className="flex items-start gap-2 my-4">
