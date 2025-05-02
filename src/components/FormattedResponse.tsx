@@ -15,7 +15,41 @@ const FormattedResponse: React.FC<FormattedResponseProps> = ({ content }) => {
       return <AccordionSection content={content} />;
     }
     
-    // If no headers, process the entire content
+    // Check if content contains structured sections marked by keywords
+    const hasStructuredSections = /\b(comparison:|versus:|pros and cons:|advantages:|disadvantages:|benefits:|drawbacks:)/i.test(content);
+    
+    // If structured sections exist, split content by those sections
+    if (hasStructuredSections) {
+      // Split by common section indicators
+      const sectionRegex = /\n\s*(comparison:|versus:|pros and cons:|advantages:|disadvantages:|benefits:|drawbacks:|summary:|conclusion:)/i;
+      const sections = content.split(sectionRegex).filter(Boolean);
+      
+      if (sections.length > 1) {
+        return (
+          <div className="space-y-6">
+            {sections.map((section, index) => {
+              // The first element might be an intro before any section header
+              if (index === 0 && !sectionRegex.test(section)) {
+                return processContentBlocks(section);
+              }
+              
+              // For other sections, extract the header and content
+              const sectionTitle = section.match(/^[^:]+:/i)?.[0] || "Section";
+              const sectionContent = section.replace(/^[^:]+:\s*/i, '').trim();
+              
+              return (
+                <div key={index} className="border rounded-md p-4 bg-muted/10">
+                  <h3 className="text-lg font-semibold mb-3 capitalize">{sectionTitle.replace(':', '')}</h3>
+                  {processContentBlocks(sectionContent)}
+                </div>
+              );
+            })}
+          </div>
+        );
+      }
+    }
+    
+    // If no special structure, process the entire content
     return processContentBlocks(content);
   };
   
