@@ -1,11 +1,11 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Paperclip, X } from 'lucide-react';
+import { getCachedFormData } from '@/utils/formCache';
 
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -24,6 +24,18 @@ const AssessmentForm: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
   const { toast } = useToast();
+  const [cachedData, setCachedData] = useState<ReturnType<typeof getCachedFormData>>({
+    email: '',
+    userName: '',
+    companyName: '',
+    companySize: ''
+  });
+
+  // Get cached form data on component mount
+  useEffect(() => {
+    const formData = getCachedFormData();
+    setCachedData(formData);
+  }, []);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -34,6 +46,19 @@ const AssessmentForm: React.FC = () => {
       description: '',
     },
   });
+
+  // Update form values when cached data is loaded
+  useEffect(() => {
+    if (cachedData.userName) {
+      form.setValue('name', cachedData.userName);
+    }
+    if (cachedData.email) {
+      form.setValue('email', cachedData.email);
+    }
+    if (cachedData.companyName) {
+      form.setValue('companyName', cachedData.companyName);
+    }
+  }, [cachedData, form]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFileError(null);

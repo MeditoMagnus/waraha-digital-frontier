@@ -1,10 +1,11 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Send, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { getCachedFormData } from "@/utils/formCache";
 
 interface QueryFormProps {
   onQuerySubmit: (response: string) => void;
@@ -14,6 +15,18 @@ const QueryForm = ({ onQuerySubmit }: QueryFormProps) => {
   const [query, setQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const [cachedData, setCachedData] = useState<ReturnType<typeof getCachedFormData>>({
+    email: '',
+    userName: '',
+    companyName: '',
+    companySize: ''
+  });
+
+  // Load cached data on component mount
+  useEffect(() => {
+    const formData = getCachedFormData();
+    setCachedData(formData);
+  }, []);
 
   const handleSubmit = async () => {
     if (!query.trim()) {
@@ -28,10 +41,10 @@ const QueryForm = ({ onQuerySubmit }: QueryFormProps) => {
     setIsLoading(true);
     
     try {
-      // Get user information from localStorage
-      const userEmail = localStorage.getItem('userEmail');
-      const companyName = localStorage.getItem('companyName');
-      const companySize = localStorage.getItem('companySize');
+      // Use cached data if available, otherwise fallback to localStorage
+      const userEmail = cachedData.email || localStorage.getItem('userEmail');
+      const companyName = cachedData.companyName || localStorage.getItem('companyName');
+      const companySize = cachedData.companySize || localStorage.getItem('companySize');
       
       if (!userEmail) {
         toast({

@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -25,6 +25,7 @@ import {
   SelectValue 
 } from '@/components/ui/select';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { getCachedFormData, saveCachedFormData } from '@/utils/formCache';
 
 // Define the access form schema
 const accessFormSchema = z.object({
@@ -45,24 +46,51 @@ const SimpleConsultantAccess = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [cachedData, setCachedData] = useState<ReturnType<typeof getCachedFormData>>({
+    email: '',
+    userName: '',
+    companyName: '',
+    companySize: ''
+  });
+
+  // Get cached form data on component mount
+  useEffect(() => {
+    const formData = getCachedFormData();
+    setCachedData(formData);
+  }, []);
 
   const form = useForm<AccessFormValues>({
     resolver: zodResolver(accessFormSchema),
     defaultValues: {
-      email: '',
-      companyName: '',
-      companySize: ''
+      email: cachedData.email || '',
+      companyName: cachedData.companyName || '',
+      companySize: cachedData.companySize || ''
     }
   });
+
+  // Update form values when cached data is loaded
+  useEffect(() => {
+    if (cachedData.email) {
+      form.setValue('email', cachedData.email);
+    }
+    if (cachedData.companyName) {
+      form.setValue('companyName', cachedData.companyName);
+    }
+    if (cachedData.companySize) {
+      form.setValue('companySize', cachedData.companySize);
+    }
+  }, [cachedData, form]);
 
   const onSubmit = (values: AccessFormValues) => {
     setIsSubmitting(true);
     
-    // Store the user details in localStorage
-    localStorage.setItem('userEmail', values.email);
-    localStorage.setItem('userName', values.email.split('@')[0]);
-    localStorage.setItem('companyName', values.companyName);
-    localStorage.setItem('companySize', values.companySize);
+    // Store the user details using our utility function
+    saveCachedFormData({
+      email: values.email,
+      userName: values.email.split('@')[0],
+      companyName: values.companyName,
+      companySize: values.companySize
+    });
     
     // Show success toast
     toast({
