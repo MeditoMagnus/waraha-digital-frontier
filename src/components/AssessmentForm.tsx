@@ -1,29 +1,22 @@
+
 import React, { useState, useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import { z } from 'zod';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Paperclip, X } from 'lucide-react';
-import { getCachedFormData } from '@/utils/formCache';
-
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Button } from '@/components/ui/button';
-
-const formSchema = z.object({
-  name: z.string().min(2, { message: "Name is required and must be at least 2 characters." }),
-  email: z.string().email({ message: "Please enter a valid email address." }),
-  companyName: z.string().min(2, { message: "Company name is required." }),
-  description: z.string().min(10, { message: "Please provide a detailed description of your needs." }),
-});
+import { Form } from '@/components/ui/form';
+import { getCachedFormData, saveCachedFormData } from '@/utils/formCache';
+import { useFileUpload } from '@/hooks/useFileUpload';
+import AssessmentFormFields, { 
+  assessmentFormSchema, 
+  AssessmentFormValues 
+} from './forms/AssessmentFormFields';
+import SubmitButton from './forms/SubmitButton';
 
 const AssessmentForm: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [file, setFile] = useState<File | null>(null);
-  const [fileError, setFileError] = useState<string | null>(null);
   const { toast } = useToast();
+  const { file, fileError, handleFileChange, clearFile } = useFileUpload();
   const [cachedData, setCachedData] = useState<ReturnType<typeof getCachedFormData>>({
     email: '',
     userName: '',
@@ -37,8 +30,8 @@ const AssessmentForm: React.FC = () => {
     setCachedData(formData);
   }, []);
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<AssessmentFormValues>({
+    resolver: zodResolver(assessmentFormSchema),
     defaultValues: {
       name: '',
       email: '',
@@ -60,35 +53,7 @@ const AssessmentForm: React.FC = () => {
     }
   }, [cachedData, form]);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFileError(null);
-    const selectedFile = e.target.files?.[0];
-    
-    if (selectedFile) {
-      if (selectedFile.size > 5 * 1024 * 1024) {
-        setFileError("File size must be less than 5MB");
-        setFile(null);
-        return;
-      }
-      
-      // Validate file type (PDF, DOC, DOCX, TXT)
-      const validTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain'];
-      if (!validTypes.includes(selectedFile.type)) {
-        setFileError("Only PDF, DOC, DOCX and TXT files are allowed");
-        setFile(null);
-        return;
-      }
-      
-      setFile(selectedFile);
-    }
-  };
-
-  const clearFile = () => {
-    setFile(null);
-    setFileError(null);
-  };
-
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+  const onSubmit = async (values: AssessmentFormValues) => {
     try {
       setIsSubmitting(true);
       let filePath = null;
@@ -107,6 +72,13 @@ const AssessmentForm: React.FC = () => {
         
         filePath = fileData?.path;
       }
+      
+      // Cache the form data
+      saveCachedFormData({
+        email: values.email,
+        userName: values.name,
+        companyName: values.companyName
+      });
       
       // Get the Supabase session
       const { data: sessionData } = await supabase.auth.getSession();
@@ -158,124 +130,21 @@ const AssessmentForm: React.FC = () => {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-white">Your Name</FormLabel>
-                <FormControl>
-                  <Input placeholder="John Doe" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-white">Email Address</FormLabel>
-                <FormControl>
-                  <Input placeholder="your.email@example.com" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-        
-        <FormField
-          control={form.control}
-          name="companyName"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-white">Company Name</FormLabel>
-              <FormControl>
-                <Input placeholder="Your Company Ltd." {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+        <AssessmentFormFields 
+          form={form} 
+          fileUploadProps={{
+            file,
+            fileError,
+            handleFileChange,
+            clearFile
+          }}
         />
         
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-white">Describe Your IT Needs</FormLabel>
-              <FormControl>
-                <Textarea 
-                  placeholder="Please describe your current IT infrastructure, challenges, and specific areas you'd like us to assess..." 
-                  className="min-h-[120px]" 
-                  {...field} 
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+        <SubmitButton 
+          isSubmitting={isSubmitting} 
+          text="Request One-to-One Assessment" 
+          loadingText="Submitting..."
         />
-        
-        <div className="space-y-2">
-          <FormLabel className="text-white">Attach Relevant Document (Optional)</FormLabel>
-          <div className="flex items-center gap-2">
-            {!file ? (
-              <>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="relative bg-background/50"
-                  onClick={() => document.getElementById('file-upload')?.click()}
-                >
-                  <Paperclip className="mr-2 h-4 w-4" />
-                  Attach File
-                  <Input
-                    id="file-upload"
-                    type="file"
-                    className="sr-only"
-                    accept=".pdf,.doc,.docx,.txt"
-                    onChange={handleFileChange}
-                  />
-                </Button>
-                <span className="text-xs text-gray-300">Max size: 5MB (PDF, DOC, DOCX, TXT)</span>
-              </>
-            ) : (
-              <div className="flex items-center gap-2 bg-background/30 text-white p-2 rounded-md">
-                <Paperclip className="h-4 w-4" />
-                <span className="text-sm truncate max-w-[200px]">{file.name}</span>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="h-6 w-6 p-0"
-                  onClick={clearFile}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            )}
-          </div>
-          {fileError && <p className="text-red-500 text-xs mt-1">{fileError}</p>}
-        </div>
-        
-        <Button
-          type="submit"
-          className="w-full bg-waraha-gold hover:bg-waraha-gold/90 text-waraha-midnight"
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Submitting...
-            </>
-          ) : (
-            "Request One-to-One Assessment"
-          )}
-        </Button>
       </form>
     </Form>
   );
