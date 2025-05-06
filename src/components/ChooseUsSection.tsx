@@ -5,8 +5,8 @@ import { useInView } from '../hooks/useInView';
 const benefits = [
   {
     title: "Industry Expertise",
-    description: "Over 15 years of combined experience in IT consultancy and managed services.",
-    count: "15+",
+    description: "Over 5 years of combined experience in IT consultancy and managed services.",
+    count: "5+",
   },
   {
     title: "Response Time",
