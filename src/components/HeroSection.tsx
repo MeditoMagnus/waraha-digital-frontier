@@ -72,7 +72,7 @@ const HeroSection: React.FC = () => {
               onClick={goToAIConsultant}
               className="glassmorphism px-8 py-4 text-white text-lg border border-waraha-silver hover:bg-waraha-silver hover:text-waraha-midnight transition-all duration-300 rounded-md inline-block"
             >
-              Try our Multi-Domain AI Consultants
+              Try our AI Consultants
             </button>
           </div>
         </div>
