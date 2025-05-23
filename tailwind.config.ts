@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -66,7 +65,7 @@ export default {
 				waraha: {
 					'midnight': '#0F172A',
 					'silver': '#9F9EA1',
-					'gold': '#F59E0B',
+					'gold': '#d4af37',
 				}
 			},
 			borderRadius: {
