@@ -2,6 +2,7 @@
 import React from 'react';
 import QueryInputArea from './QueryInputArea';
 import QueryExamples from './QueryExamples';
+import DomainSelector from './DomainSelector';
 import { useQuerySubmission } from '@/hooks/useQuerySubmission';
 
 interface QueryFormProps {
@@ -9,10 +10,15 @@ interface QueryFormProps {
 }
 
 const QueryForm: React.FC<QueryFormProps> = ({ onQuerySubmit }) => {
-  const { query, setQuery, isLoading, handleSubmit } = useQuerySubmission(onQuerySubmit);
+  const { query, setQuery, domain, setDomain, isLoading, handleSubmit } = useQuerySubmission(onQuerySubmit);
 
   return (
     <div className="space-y-4">
+      <DomainSelector 
+        selectedDomain={domain}
+        onDomainChange={setDomain}
+      />
+      
       <QueryInputArea 
         query={query}
         setQuery={setQuery}
@@ -20,7 +26,7 @@ const QueryForm: React.FC<QueryFormProps> = ({ onQuerySubmit }) => {
         isLoading={isLoading}
       />
       
-      <QueryExamples />
+      <QueryExamples domain={domain} />
     </div>
   );
 };

@@ -6,13 +6,14 @@ import { getCachedFormData } from "@/utils/formCache";
 
 export const useQuerySubmission = (onResponse: (response: string) => void) => {
   const [query, setQuery] = useState('');
+  const [domain, setDomain] = useState('it');
   const [isLoading, setIsLoading] = useState(false);
   
   const handleSubmit = async () => {
     if (!query.trim()) {
       toast({
         title: "Error",
-        description: "Please enter your technical query first.",
+        description: "Please enter your query first.",
         variant: "destructive",
       });
       return;
@@ -39,45 +40,31 @@ export const useQuerySubmission = (onResponse: (response: string) => void) => {
         return;
       }
 
-      // For demonstration, simulate a successful response
-      // In production, this would call the Supabase function
-      setTimeout(() => {
-        const demoResponse = `# Technical Analysis for ${companyName}
+      // Call the Supabase edge function with the domain parameter
+      const { data, error } = await supabase.functions.invoke('chat-with-ai', {
+        body: { 
+          query,
+          domain,
+          userEmail,
+          companyName,
+          companySize
+        },
+      });
 
-**Based on your query, here is a detailed analysis:**
+      if (error) {
+        throw new Error(error.message || "Failed to generate response");
+      }
 
-## Overview
-Your request involves complex technical architecture decisions that will impact your system's scalability and performance.
-
-## Recommended Approach
-Here's a phased approach to implementation:
-
-### Phase 1: Infrastructure Setup
-- Set up cloud resources and configure networking
-- Implement CI/CD pipelines for automated deployments
-
-### Phase 2: Core Development
-- Develop key features and components
-- Implement authentication and authorization
-
-### Phase 3: Integration & Testing
-- Integrate with third-party services
-- Conduct comprehensive testing and bug fixes
-
-## Cost Implications
-The estimated cost for this implementation would be in the range of $20,000-30,000 depending on your exact requirements.
-
-## Next Steps
-Please review this proposal and let us know if you need any clarifications or have additional requirements.
-`;
-        onResponse(demoResponse);
+      // Process successful response
+      if (data && data.response) {
+        onResponse(data.response);
         setQuery('');
         
         toast({
-          title: "Success",
+          title: `${data.domain || 'AI'} Response`,
           description: "Response generated successfully.",
         });
-      }, 2000);
+      }
     } catch (error: any) {
       console.error('Error:', error);
       
@@ -94,6 +81,8 @@ Please review this proposal and let us know if you need any clarifications or ha
   return {
     query,
     setQuery,
+    domain,
+    setDomain,
     isLoading,
     handleSubmit
   };

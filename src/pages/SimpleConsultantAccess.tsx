@@ -24,8 +24,9 @@ import {
   SelectTrigger, 
   SelectValue 
 } from '@/components/ui/select';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { getCachedFormData, saveCachedFormData } from '@/utils/formCache';
+import { Computer, LandmarkIcon, SearchIcon, ShieldCheck, Building2Icon } from 'lucide-react';
 
 // Define the access form schema
 const accessFormSchema = z.object({
@@ -95,7 +96,7 @@ const SimpleConsultantAccess = () => {
     // Show success toast
     toast({
       title: "Access Granted",
-      description: "Welcome to our AI Technical Consultant!",
+      description: "Welcome to our Multi-Domain AI Consultants!",
     });
     
     // Navigate to the presales consultancy page
@@ -103,6 +104,34 @@ const SimpleConsultantAccess = () => {
       navigate('/presales-consultancy');
     }, 500);
   };
+
+  const consultancyDomains = [
+    {
+      name: "IT Consultancy",
+      icon: <Computer className="h-8 w-8" />,
+      description: "Expert advice on software, hardware, cloud infrastructure, cybersecurity, and digital transformation."
+    },
+    {
+      name: "Taxation Services",
+      icon: <LandmarkIcon className="h-8 w-8" />,
+      description: "Guidance on UAE VAT, corporate tax, compliance, registration, filing, and optimization strategies."
+    },
+    {
+      name: "Auditing Services",
+      icon: <SearchIcon className="h-8 w-8" />,
+      description: "Assistance with financial audits, compliance reviews, internal controls, and financial reporting."
+    },
+    {
+      name: "AML Compliance",
+      icon: <ShieldCheck className="h-8 w-8" />,
+      description: "Support for anti-money laundering compliance, KYC procedures, risk assessment, and reporting."
+    },
+    {
+      name: "Real Estate Advisory",
+      icon: <Building2Icon className="h-8 w-8" />,
+      description: "Insights on property investment, market trends, valuations, and management in the UAE."
+    }
+  ];
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -116,28 +145,34 @@ const SimpleConsultantAccess = () => {
         </Link>
       </div>
       
-      <div className="max-w-2xl mx-auto my-8">
+      <div className="max-w-4xl mx-auto my-8">
         <Card className="mb-8">
           <CardHeader>
-            <CardTitle className="text-3xl">AI Technical Consultant Access</CardTitle>
+            <CardTitle className="text-3xl">Multi-Domain AI Consultants Access</CardTitle>
             <CardDescription>
-              Get expert advice on software, IT services, architecture, pricing, configurations, or any technical query.
+              Get expert advice across IT, Taxation, Auditing, AML Compliance, and Real Estate domains - all powered by advanced AI and Waraha Group's expertise.
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="mb-6 bg-blue-50 border border-blue-100 rounded-lg p-4 text-blue-800">
-              <h3 className="text-lg font-medium mb-2">How Our AI Technical Consultant Can Help You</h3>
-              <p className="mb-2">Our AI-powered consultant specializes in providing instant technical expertise for:</p>
-              <ul className="list-disc pl-5 space-y-1">
-                <li>Software architecture recommendations</li>
-                <li>Technology stack selection guidance</li>
-                <li>Integration solutions between systems</li>
-                <li>IT infrastructure planning and optimization</li>
-                <li>Cloud migration strategies</li>
-                <li>Cost estimations for technical projects</li>
-                <li>Security implementation advice</li>
-                <li>And much more - anything under the sky!</li>
-              </ul>
+            <div className="mb-6">
+              <h3 className="text-lg font-medium mb-4">Our AI Consultants can help you with:</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                {consultancyDomains.map((domain, index) => (
+                  <Card key={index} className="bg-muted/50">
+                    <CardContent className="pt-6">
+                      <div className="flex flex-col items-center text-center mb-2">
+                        <div className="p-3 rounded-full bg-primary/10 mb-3">
+                          {domain.icon}
+                        </div>
+                        <h4 className="font-medium text-lg">{domain.name}</h4>
+                      </div>
+                      <p className="text-sm text-muted-foreground text-center">
+                        {domain.description}
+                      </p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
             </div>
 
             <Form {...form}>
@@ -201,7 +236,7 @@ const SimpleConsultantAccess = () => {
                   className="w-full"
                   disabled={isSubmitting}
                 >
-                  {isSubmitting ? "Processing..." : "Access AI Consultant"}
+                  {isSubmitting ? "Processing..." : "Access Multi-Domain AI Consultants"}
                 </Button>
               </form>
             </Form>

@@ -30,7 +30,7 @@ const Navbar: React.FC = () => {
     { name: 'Why Us', href: '#why-us' },
     { name: 'Contact', href: '#contact' },
     { 
-      name: 'AI Consultant', 
+      name: 'Multi-Domain AI Consultants', 
       href: '/consultant-access', 
       isPageLink: true,
       isPremium: true

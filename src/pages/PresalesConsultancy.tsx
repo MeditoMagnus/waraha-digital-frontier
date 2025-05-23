@@ -6,7 +6,6 @@ import { ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
 import QueryForm from '@/components/presales/QueryForm';
 import ResponseDisplay from '@/components/presales/ResponseDisplay';
 import { useQueryClient } from "@tanstack/react-query";
@@ -40,7 +39,7 @@ const PresalesConsultancy = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-3xl">
+    <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="flex justify-between items-center mb-6">
         <Link 
           to="/" 
@@ -54,18 +53,18 @@ const PresalesConsultancy = () => {
       <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 text-blue-800 mb-8">
         <h2 className="text-lg font-medium mb-2">Welcome, {userName}!</h2>
         <p>
-          You can now ask our AI Technical Consultant any technical questions related to 
-          IT services, software development, cloud infrastructure, or any other technical 
-          needs for {companyName}.
+          You can now ask our AI Consultants any questions related to 
+          IT services, Taxation, Auditing, AML Compliance, or Real Estate needs for {companyName}.
+          Simply select a domain below and ask your question.
         </p>
       </div>
       
       <Card className="mb-8">
         <CardHeader>
-          <CardTitle className="text-4xl text-center">AI Technical Consultant</CardTitle>
+          <CardTitle className="text-4xl text-center">Waraha Group AI Consultants</CardTitle>
           <CardDescription className="text-center">
-            Get expert technical advice on software, IT services, architecture, pricing, 
-            configurations, or integrations - powered by advanced AI.
+            Get expert advice in multiple domains including IT, Taxation, Auditing, AML Compliance, and Real Estate 
+            - powered by advanced AI and Waraha Group's expertise.
           </CardDescription>
         </CardHeader>
         <CardContent>

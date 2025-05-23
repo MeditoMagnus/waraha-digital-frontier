@@ -36,7 +36,14 @@ const ServiceCard: React.FC<ServiceCardProps> = ({ title, description, icon, del
         transition: 'opacity 0.7s ease-out, transform 0.7s ease-out'
       }}
     >
-  
+      <div className="flex items-center mb-4">
+        <div className="p-2 bg-waraha-gold/10 rounded-md text-waraha-gold mr-3">
+          {icon}
+        </div>
+        <h3 className="text-xl font-semibold text-white">{title}</h3>
+      </div>
+      <p className="text-gray-300">{description}</p>
+    </div>
   );
 };
 
