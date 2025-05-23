@@ -5,7 +5,7 @@ export const BrandLogo = () => {
   return (
     <a href="#home" className="flex items-center">
       <img 
-        src="/lovable-uploads/1470c283-68ba-41ef-b109-b2e9697a17d3.png" 
+        src="/lovable-uploads/WhatsApp_Image_2025-05-23_at_13.46.02-removebg-preview.png" 
         alt="Waraha Group Logo" 
         className="h-10 mr-2"
       />
