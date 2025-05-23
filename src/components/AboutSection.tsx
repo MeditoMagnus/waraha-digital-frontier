@@ -36,10 +36,12 @@ const AboutSection: React.FC = () => {
               "No one is completely right or wrong—everyone sees life through their own perspective."
             </p>
             <p className="text-gray-300">
-              This philosophy guides our approach to IT consultancy. We understand that every 
+              This philosophy guides our approach to consultancy. We understand that every 
               organization has unique needs, challenges, and visions. Our expertise lies in 
               seeing your business through your lens while providing expert solutions that 
               align with your goals.
+              Join hands with Waraha Group — where expertise meets execution.
+Let us guide your business toward digital, financial, and regulatory excellence.
             </p>
           </div>
           
