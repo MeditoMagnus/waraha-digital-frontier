@@ -54,15 +54,23 @@ const AboutSection: React.FC = () => {
           >
             <h3 className="text-2xl font-serif text-waraha-silver mb-4">The Waraha Vision</h3>
             <p className="mb-4 text-gray-300">
-              Founded in 2021, Waraha is group of freelancer IT consultants who help customers with choosing 
-              the best IT and management resources. We are a team of visionaries who aim to bring ground 
-              breaking consultancy.
+             Waraha Group is a UAE-based consulting firm built on a passion for excellence, integrity, and strategic insight. Since our inception, we have been a trusted partner for startups, SMEs, and enterprises, helping them navigate complex compliance requirements, implement scalable IT systems, and make informed real estate investments.
+
+Our consultants bring deep industry expertise, global best practices, and personalized service that empower our clients to succeed with confidence
             </p>
             <p className="text-gray-300">
-              Today, we're a team of dedicated IT professionals committed to providing 
-              cutting-edge consultancy and outsourcing services to businesses of all sizes. 
-              Our approach combines technical expertise with a deep understanding of business 
-              processes, allowing us to deliver solutions that truly transform operations.
+.
+
+💼 What We Offer
+IT Consultancy: Optimizing your digital infrastructure with scalable, secure, and cost-efficient IT solutions tailored to your business goals.
+
+Taxation Services: Assisting businesses with accurate tax filing, planning, and compliance aligned with UAE VAT and international tax laws.
+
+Auditing Services: Conducting independent, transparent audits that promote financial integrity and regulatory compliance.
+
+AML Compliance: Helping organizations identify and mitigate financial crime risks through robust anti-money laundering strategies and systems.
+
+Real Estate Consultancy: Offering strategic advice on property acquisition, investment planning, and market insights for residential and commercial clients.
             </p>
           </div>
         </div>
