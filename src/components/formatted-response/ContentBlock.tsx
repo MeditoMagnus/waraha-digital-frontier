@@ -1,94 +1,77 @@
-
 import React from 'react';
-import ListSection from './ListSection';
 import CodeBlock from './CodeBlock';
+import QuoteSection from './QuoteSection';
+import ListSection from './ListSection';
 import TableSection from './TableSection';
 import InfoSection from './InfoSection';
-import RoadmapSection from './RoadmapSection';
 import ChecklistSection from './ChecklistSection';
+import RoadmapSection from '../formatted-response/RoadmapSection';
 import ActionPoints from './ActionPoints';
-import QuoteSection from './QuoteSection';
 
 interface ContentBlockProps {
   block: string;
 }
 
 const ContentBlock: React.FC<ContentBlockProps> = ({ block }) => {
-  const trimmedBlock = block.trim();
-
-  // Check for roadmap/timeline content - enhanced detection
-  if (/\b(roadmap|timeline|phases|steps|stages|plan|schedule|milestones)\b/i.test(trimmedBlock.toLowerCase())) {
-    // Look for phase patterns or numbered lists that indicate a roadmap
-    if (
-      /\b(phase|step|stage|week|month|quarter|year)\s*\d+:?/i.test(trimmedBlock) ||
-      /^\d+\.\s+.+/m.test(trimmedBlock)
-    ) {
-      return <RoadmapSection content={trimmedBlock} />;
-    }
+  // Check if this is a code block
+  if (block.startsWith('```') && block.endsWith('```')) {
+    return <CodeBlock code={block.slice(3, -3)} />;
   }
-
-  // Check for checklist content
-  if (/\b(checklist|task list|to-?do list)\b/i.test(trimmedBlock.toLowerCase()) && 
-      trimmedBlock.match(/^[-*•]|\d+\.\s/m)) {
-    return <ChecklistSection content={trimmedBlock} />;
+  
+  // Check if this is a quote block
+  if (block.startsWith('>')) {
+    return <QuoteSection content={block} />;
   }
-
-  // Check for action points or next steps
-  if (/\b(action points|next steps|recommendations|action items)\b/i.test(trimmedBlock.toLowerCase())) {
-    return <ActionPoints content={trimmedBlock} />;
+  
+  // Check if this contains a table (markdown tables)
+  if (block.includes('|') && block.includes('\n') && block.split('\n')[0].includes('|') && block.split('\n')[1]?.includes('---')) {
+    return <TableSection content={block} />;
   }
-
-  // Check for quotes or important statements
-  if (trimmedBlock.startsWith('>') || /\b(key takeaway|quote|important note)\b/i.test(trimmedBlock.toLowerCase())) {
-    const content = trimmedBlock.replace(/^>\s?/gm, ''); // Remove quote marks
-    return <QuoteSection content={content} />;
+  
+  // Check if this is a list
+  if (/^[-*+] /.test(block) || /^\d+\.\s/.test(block)) {
+    return <ListSection content={block} />;
   }
-
-  // Check for lists (both bullet and numbered)
-  if (trimmedBlock.match(/^[-*•]|\d+\.\s+/m)) {
-    return <ListSection content={trimmedBlock} />;
+  
+  // Check if this is a note/info section
+  if (block.toLowerCase().includes('note:') || block.toLowerCase().includes('important:') || block.toLowerCase().includes('warning:') || block.toLowerCase().includes('tip:')) {
+    return <InfoSection content={block} />;
   }
-
-  // Check for code blocks
-  if (trimmedBlock.includes('```')) {
-    const parts = trimmedBlock.split(/```(?:\w+)?\n?|\n?```/);
-    if (parts.length >= 3) {
-      return (
-        <div>
-          {parts[0] && <p>{parts[0].trim()}</p>}
-          <CodeBlock content={parts[1]} />
-          {parts[2] && <p>{parts[2].trim()}</p>}
-        </div>
-      );
-    }
+  
+  // Check if this is a checklist
+  if (block.toLowerCase().includes('- [ ]') || block.toLowerCase().includes('- [x]')) {
+    return <ChecklistSection content={block} />;
   }
-
-  // Check for tables
-  if (trimmedBlock.includes('|') && 
-      trimmedBlock.includes('\n') &&
-      trimmedBlock.split('\n').length >= 3 &&
-      trimmedBlock.split('\n')[1].includes('-')) {
-    return <TableSection content={trimmedBlock} />;
+  
+  // Check if this is a roadmap/timeline section
+  if (
+    (
+      /\b(roadmap|timeline|phases|steps|stages|plan|schedule|milestones)\b/i.test(block) && 
+      (/phase\s*\d+/i.test(block) || /step\s*\d+/i.test(block) || /\d+\.\s+/m.test(block))
+    ) || 
+    /^(Phase|Step|Stage|Week|Month|Quarter|Year)\s*\d+:?/im.test(block)
+  ) {
+    return <RoadmapSection content={block} />;
   }
-
-  // Check for tips/important notes
-  if (trimmedBlock.toLowerCase().startsWith('tip:') || 
-      trimmedBlock.toLowerCase().startsWith('important:')) {
-    return <InfoSection type="tip" content={trimmedBlock} />;
+  
+  // Check if this block contains action points
+  if (block.toLowerCase().includes('action item') || block.toLowerCase().includes('next steps') || block.toLowerCase().includes('todo') || block.toLowerCase().includes('to do')) {
+    return <ActionPoints content={block} />;
   }
-
-  // Check for warnings
-  if (trimmedBlock.toLowerCase().startsWith('warning:') || 
-      trimmedBlock.toLowerCase().startsWith('caution:')) {
-    return <InfoSection type="warning" content={trimmedBlock} />;
+  
+  // For regular paragraphs, convert markdown-style bold to HTML bold
+  const formattedBlock = block
+    .replace(/\*\*\*(.*?)\*\*\*/g, '<strong>$1</strong>')
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/__(.*?)__/g, '<strong>$1</strong>');
+  
+  // If the block contains HTML, use dangerouslySetInnerHTML
+  if (formattedBlock.includes('<')) {
+    return <p className="mb-4" dangerouslySetInnerHTML={{ __html: formattedBlock }} />;
   }
-
-  // Default: regular paragraph - check for bold formatting
-  if (trimmedBlock.includes('**')) {
-    return <QuoteSection content={trimmedBlock} />;
-  }
-
-  return <p className="my-4">{trimmedBlock}</p>;
+  
+  // Otherwise, render as plain text
+  return <p className="mb-4">{block}</p>;
 };
 
 export default ContentBlock;

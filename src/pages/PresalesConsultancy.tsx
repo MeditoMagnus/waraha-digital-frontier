@@ -1,13 +1,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "@/components/ui/use-toast";
 import { ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import QueryForm from '@/components/presales/QueryForm';
 import ResponseDisplay from '@/components/presales/ResponseDisplay';
 import { useQueryClient } from "@tanstack/react-query";
@@ -16,7 +15,6 @@ const PresalesConsultancy = () => {
   const [response, setResponse] = useState('');
   const [activeTab, setActiveTab] = useState('query');
   const navigate = useNavigate();
-  const { toast } = useToast();
   const queryClient = useQueryClient();
   
   // Get stored user information
@@ -34,7 +32,7 @@ const PresalesConsultancy = () => {
       });
       navigate('/consultant-access');
     }
-  }, [navigate, toast, queryClient]);
+  }, [navigate, queryClient]);
 
   const handleResponse = (newResponse: string) => {
     setResponse(newResponse);

@@ -20,35 +20,69 @@ const RoadmapSection: React.FC<RoadmapSectionProps> = ({ content }) => {
         // Match "Phase X:" or "Step X:" or similar patterns
         /^(Phase|Step|Stage|Week|Month|Quarter|Year)\s*\d+:?/i.test(trimmed) ||
         // Match numbered items like "1. First step"
-        /^\d+\.\s+.+/.test(trimmed)
+        /^\d+\.\s+.+/.test(trimmed) ||
+        // Match dash items that look like steps
+        /^[-*] (Phase|Step|Stage)\s*\d+:?/i.test(trimmed)
       );
     });
     
-    return phaseLines.map(line => {
-      // Handle numbered items (e.g., "1. First step")
-      if (/^\d+\.\s+/.test(line)) {
-        const number = line.match(/^\d+/)?.[0] || '';
-        const description = line.replace(/^\d+\.\s+/, '').trim();
-        return {
-          title: `Step ${number}`,
-          description
-        };
+    // If no phase lines were found, try to extract them differently
+    if (phaseLines.length === 0) {
+      // Look for paragraphs that start with numbers or phase keywords
+      const paragraphs = content.split('\n\n');
+      for (const para of paragraphs) {
+        if (/^(Phase|Step|Stage)\s*\d+:?/i.test(para.trim()) || /^\d+\.\s+/.test(para.trim())) {
+          return [para.trim()].map(parsePhaseLine);
+        }
       }
       
-      // Handle named phases (e.g., "Phase 1: Description")
-      const match = line.match(/^([\w\s]+\d+):?(.*)/i);
+      // If still no matches, look for lines with numbers and descriptions
+      return lines
+        .filter(line => /\d+\.|\(\d+\)|\d+\)/.test(line.trim()))
+        .map(line => ({
+          title: `Step ${line.match(/\d+/)?.[0] || ''}`,
+          description: line.replace(/^\s*\d+\.|\(\d+\)|\d+\)\s*/, '').trim()
+        }));
+    }
+    
+    return phaseLines.map(parsePhaseLine);
+  };
+  
+  const parsePhaseLine = (line: string) => {
+    // Handle numbered items (e.g., "1. First step")
+    if (/^\d+\.\s+/.test(line)) {
+      const number = line.match(/^\d+/)?.[0] || '';
+      const description = line.replace(/^\d+\.\s+/, '').trim();
+      return {
+        title: `Step ${number}`,
+        description
+      };
+    }
+    
+    // Handle dash items (e.g., "- Phase 1: Description")
+    if (/^[-*] (Phase|Step|Stage)\s*\d+:?/i.test(line)) {
+      const match = line.match(/^[-*] ([\w\s]+\d+):?(.*)/i);
       if (match) {
         return {
           title: match[1].trim(),
           description: match[2].trim()
         };
       }
-      
+    }
+    
+    // Handle named phases (e.g., "Phase 1: Description")
+    const match = line.match(/^([\w\s]+\d+):?(.*)/i);
+    if (match) {
       return {
-        title: 'Step',
-        description: line.trim()
+        title: match[1].trim(),
+        description: match[2].trim()
       };
-    });
+    }
+    
+    return {
+      title: 'Step',
+      description: line.trim()
+    };
   };
   
   const phases = parsePhases();
@@ -57,7 +91,7 @@ const RoadmapSection: React.FC<RoadmapSectionProps> = ({ content }) => {
   if (phases.length === 0) return null;
 
   return (
-    <div className="flex items-start gap-2 my-4">
+    <div className="RoadmapSection flex items-start gap-2 my-4">
       <CalendarCheck className="h-5 w-5 text-primary mt-1 flex-shrink-0" />
       <div className="w-full space-y-2">
         {phases.map((phase, index) => (

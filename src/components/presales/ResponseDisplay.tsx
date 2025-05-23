@@ -5,7 +5,7 @@ import { MessageSquare, Download, Calendar, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import FormattedResponse from "@/components/FormattedResponse";
 import { generateResponsePDF } from "@/utils/pdfGenerator";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "@/components/ui/use-toast";
 
 interface ResponseDisplayProps {
   response: string;
@@ -47,7 +47,7 @@ const ResponseDisplay = ({ response }: ResponseDisplayProps) => {
           {hasRoadmap && (
             <Button variant="outline" size="sm" className="text-xs" onClick={() => {
               // Scroll to the first roadmap section
-              const roadmapElement = document.querySelector('[class*="RoadmapSection"]');
+              const roadmapElement = document.querySelector('.RoadmapSection');
               if (roadmapElement) {
                 roadmapElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
               }

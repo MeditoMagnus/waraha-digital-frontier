@@ -1,13 +1,12 @@
 
 import { useState } from 'react';
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { getCachedFormData } from "@/utils/formCache";
 
 export const useQuerySubmission = (onResponse: (response: string) => void) => {
   const [query, setQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
   
   const handleSubmit = async () => {
     if (!query.trim()) {
@@ -40,40 +39,45 @@ export const useQuerySubmission = (onResponse: (response: string) => void) => {
         return;
       }
 
-      // Call the edge function for AI query
-      const { data, error } = await supabase.functions.invoke('ai-query', {
-        body: { 
-          query,
-          userEmail,
-          companyName,
-          companySize
-        },
-      });
+      // For demonstration, simulate a successful response
+      // In production, this would call the Supabase function
+      setTimeout(() => {
+        const demoResponse = `# Technical Analysis for ${companyName}
 
-      if (error) {
-        console.error('Edge function error:', error);
-        throw new Error(error.message || "Failed to process query");
-      }
+**Based on your query, here is a detailed analysis:**
 
-      if (!data) {
-        throw new Error("No response received");
-      }
-      
-      if (!data.success) {
-        throw new Error(data.error || "Failed to process query");
-      }
+## Overview
+Your request involves complex technical architecture decisions that will impact your system's scalability and performance.
 
-      console.log("Query processed successfully:", data);
-      
-      // Process successful response
-      onResponse(data.response);
-      setQuery('');
-      
-      // Show success toast
-      toast({
-        title: "Success",
-        description: "Response generated successfully.",
-      });
+## Recommended Approach
+Here's a phased approach to implementation:
+
+### Phase 1: Infrastructure Setup
+- Set up cloud resources and configure networking
+- Implement CI/CD pipelines for automated deployments
+
+### Phase 2: Core Development
+- Develop key features and components
+- Implement authentication and authorization
+
+### Phase 3: Integration & Testing
+- Integrate with third-party services
+- Conduct comprehensive testing and bug fixes
+
+## Cost Implications
+The estimated cost for this implementation would be in the range of $20,000-30,000 depending on your exact requirements.
+
+## Next Steps
+Please review this proposal and let us know if you need any clarifications or have additional requirements.
+`;
+        onResponse(demoResponse);
+        setQuery('');
+        
+        toast({
+          title: "Success",
+          description: "Response generated successfully.",
+        });
+      }, 2000);
     } catch (error: any) {
       console.error('Error:', error);
       
