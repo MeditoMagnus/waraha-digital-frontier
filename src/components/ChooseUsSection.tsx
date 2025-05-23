@@ -5,22 +5,22 @@ import { useInView } from '../hooks/useInView';
 const benefits = [
   {
     title: "Industry Expertise",
-    description: "Over 5 years of combined experience in IT consultancy and managed services.",
-    count: "5+",
+    description: "Over 10 years of combined experience in IT, taxation, and real estate consultancy in UAE.",
+    count: "10+",
   },
   {
     title: "Response Time",
-    description: "Average response time for critical issues, ensuring minimal downtime.",
+    description: "Average response time for critical issues, ensuring minimal downtime for your business.",
     count: "15 min",
   },
   {
     title: "Client Satisfaction",
-    description: "Of our clients report improved IT efficiency after partnering with us.",
+    description: "Of our clients report improved operational efficiency after partnering with us.",
     count: "98%",
   },
   {
     title: "Cost Reduction",
-    description: "Average reduction in IT operational costs for our clients.",
+    description: "Average reduction in operational costs for businesses using our comprehensive services.",
     count: "30%",
   },
 ];
@@ -30,7 +30,7 @@ const ChooseUsSection: React.FC = () => {
   const isInView = useInView(sectionRef, { threshold: 0.1, once: true });
 
   return (
-    <section id="why-us" ref={sectionRef} className="section bg-gradient-to-b from-[#192236] to-waraha-midnight">
+    <section id="why-us" ref={sectionRef} className="section bg-gradient-to-b from-[#192236] to-waraha-midnight py-20">
       <div className="container mx-auto">
         <h2 className="section-title">Why Choose Us</h2>
         
