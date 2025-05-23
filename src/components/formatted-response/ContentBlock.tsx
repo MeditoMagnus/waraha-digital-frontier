@@ -1,3 +1,4 @@
+
 import React from 'react';
 import CodeBlock from './CodeBlock';
 import QuoteSection from './QuoteSection';
@@ -15,7 +16,7 @@ interface ContentBlockProps {
 const ContentBlock: React.FC<ContentBlockProps> = ({ block }) => {
   // Check if this is a code block
   if (block.startsWith('```') && block.endsWith('```')) {
-    return <CodeBlock code={block.slice(3, -3)} />;
+    return <CodeBlock content={block.slice(3, -3)} />;
   }
   
   // Check if this is a quote block
@@ -34,8 +35,18 @@ const ContentBlock: React.FC<ContentBlockProps> = ({ block }) => {
   }
   
   // Check if this is a note/info section
-  if (block.toLowerCase().includes('note:') || block.toLowerCase().includes('important:') || block.toLowerCase().includes('warning:') || block.toLowerCase().includes('tip:')) {
-    return <InfoSection content={block} />;
+  if (block.toLowerCase().includes('note:') || block.toLowerCase().includes('important:')) {
+    return <InfoSection content={block} type="tip" />;
+  }
+  
+  // Check if this is a warning section
+  if (block.toLowerCase().includes('warning:') || block.toLowerCase().includes('caution:')) {
+    return <InfoSection content={block} type="warning" />;
+  }
+
+  // Check if this is a tip section
+  if (block.toLowerCase().includes('tip:') || block.toLowerCase().includes('hint:')) {
+    return <InfoSection content={block} type="tip" />;
   }
   
   // Check if this is a checklist
