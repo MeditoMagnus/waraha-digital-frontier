@@ -53,8 +53,7 @@ const HeroSection: React.FC = () => {
             className="text-lg md:text-xl text-gray-300 max-w-2xl opacity-0"
             style={{opacity: 1, transition: 'opacity 0.7s ease-out, transform 0.7s ease-out'}}
           >
-            Waraha Group delivers cutting-edge IT consultancy and outsourcing services 
-            that transform your business challenges into strategic advantages.
+            At Waraha Group, we are committed to delivering end-to-end consultancy solutions that drive growth, compliance, and innovation for businesses across the UAE and beyond. With a strong foundation in IT consultancy, taxation, auditing, anti-money laundering (AML) compliance, and real estate advisory, our multidisciplinary team ensures your organization thrives in today’s fast-changing regulatory and economic landscape.
           </p>
           
           <div 
@@ -66,13 +65,13 @@ const HeroSection: React.FC = () => {
               href="#contact" 
               className="glassmorphism px-8 py-4 text-white text-lg border border-waraha-gold hover:bg-waraha-gold hover:text-waraha-midnight transition-all duration-300 rounded-md inline-block"
             >
-              Get a Free IT Assessment
+              Get a Free Assessment
             </a>
             <button 
               onClick={goToAIConsultant}
               className="glassmorphism px-8 py-4 text-white text-lg border border-waraha-silver hover:bg-waraha-silver hover:text-waraha-midnight transition-all duration-300 rounded-md inline-block"
             >
-              Ask our AI Consultant Waraha (Pro)
+              Ask our Consultant Waraha (Pro)
             </button>
           </div>
         </div>
