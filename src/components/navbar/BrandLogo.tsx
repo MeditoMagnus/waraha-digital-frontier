@@ -7,7 +7,7 @@ export const BrandLogo = () => {
       <img 
         src="/lovable-uploads/WhatsApp_Image_2025-05-23_at_13.46.02-removebg-preview.png" 
         alt="Waraha Group Logo" 
-        className="h-[60px] w-[151px]"
+        className="h-[60px] w-[101px]"
 
       />
     </a>
