@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { X } from 'lucide-react';
 import { NavLink } from './NavLink';
 import { NavLinkType } from './types';
 
@@ -15,15 +16,25 @@ export const MobileMenu = ({ isOpen, links, authLinks, onClose }: MobileMenuProp
 
   return (
     <>
-      {/* Backdrop overlay */}
+      {/* Enhanced backdrop overlay with stronger blur */}
       <div 
-        className="md:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
+        className="md:hidden fixed inset-0 bg-black/70 backdrop-blur-md z-40"
         onClick={onClose}
       />
       
-      {/* Mobile menu */}
-      <div className="md:hidden fixed top-0 right-0 h-full w-80 max-w-[80vw] bg-waraha-midnight/95 backdrop-blur-md border-l border-white/10 shadow-xl z-50 transform transition-transform duration-300">
-        <div className="flex flex-col h-full pt-20 px-6">
+      {/* Mobile menu with enhanced blur and backdrop */}
+      <div className="md:hidden fixed top-0 right-0 h-full w-80 max-w-[80vw] bg-waraha-midnight/95 backdrop-blur-xl border-l border-white/20 shadow-2xl z-50 transform transition-transform duration-300">
+        {/* Close button */}
+        <div className="flex justify-end p-4">
+          <button 
+            onClick={onClose}
+            className="text-white hover:text-waraha-gold transition-colors p-2 rounded-full hover:bg-white/10"
+          >
+            <X size={24} />
+          </button>
+        </div>
+        
+        <div className="flex flex-col h-full pt-4 px-6 pb-8">
           <div className="flex flex-col space-y-6">
             {links.map((link) => (
               <div key={link.name} onClick={onClose} className="text-lg">
