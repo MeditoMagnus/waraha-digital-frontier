@@ -62,18 +62,25 @@
     font-family: 'DM Serif Display', serif;
   }
 
-  /* Ensure backdrop-blur works on mobile browsers */
+  /* Enhanced backdrop-blur support for better visibility */
   @supports (backdrop-filter: blur(10px)) {
     .backdrop-blur-md {
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
     }
+    .backdrop-blur-xl {
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+    }
   }
 
-  /* Fallback for browsers that don't support backdrop-filter */
+  /* Enhanced fallback for browsers that don't support backdrop-filter */
   @supports not (backdrop-filter: blur(10px)) {
     .backdrop-blur-md {
-      background-color: rgba(15, 23, 42, 0.9);
+      background-color: rgba(15, 23, 42, 0.95);
+    }
+    .backdrop-blur-xl {
+      background-color: rgba(15, 23, 42, 0.98);
     }
   }
 }

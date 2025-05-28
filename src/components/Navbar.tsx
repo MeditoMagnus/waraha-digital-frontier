@@ -43,7 +43,7 @@ const Navbar: React.FC = () => {
     <nav 
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         isScrolled 
-          ? 'bg-waraha-midnight/95 backdrop-blur-md border-b border-white/10 shadow-lg py-2' 
+          ? 'bg-waraha-midnight/98 backdrop-blur-xl border-b border-white/10 shadow-xl py-2' 
           : 'bg-transparent py-4'
       }`}
     >
