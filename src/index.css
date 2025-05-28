@@ -45,13 +45,36 @@
     @apply border-border;
   }
 
+  html {
+    scroll-behavior: smooth;
+    /* Ensure proper viewport handling on mobile */
+    -webkit-text-size-adjust: 100%;
+  }
+
   body {
     @apply bg-waraha-midnight text-white;
     font-family: 'Inter', sans-serif;
+    /* Prevent horizontal scroll on mobile */
+    overflow-x: hidden;
   }
 
   h1, h2, h3, h4, h5, h6 {
     font-family: 'DM Serif Display', serif;
+  }
+
+  /* Ensure backdrop-blur works on mobile browsers */
+  @supports (backdrop-filter: blur(10px)) {
+    .backdrop-blur-md {
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+  }
+
+  /* Fallback for browsers that don't support backdrop-filter */
+  @supports not (backdrop-filter: blur(10px)) {
+    .backdrop-blur-md {
+      background-color: rgba(15, 23, 42, 0.9);
+    }
   }
 }
 
@@ -71,10 +94,6 @@
   .card-hover {
     @apply transition-all duration-300 hover:shadow-xl hover:-translate-y-2;
   }
-}
-
-html {
-  scroll-behavior: smooth;
 }
 
 .parallax {

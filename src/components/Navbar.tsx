@@ -42,16 +42,18 @@ const Navbar: React.FC = () => {
   return (
     <nav 
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled ? 'glassmorphism py-2' : 'bg-transparent py-4'
+        isScrolled 
+          ? 'bg-waraha-midnight/95 backdrop-blur-md border-b border-white/10 shadow-lg py-2' 
+          : 'bg-transparent py-4'
       }`}
     >
-      <div className="container mx-auto flex justify-between items-center">
+      <div className="container mx-auto flex justify-between items-center px-4">
         <BrandLogo />
         
         <DesktopNav links={navLinks} authLinks={authLinks} />
         
         <button 
-          className="md:hidden text-white"
+          className="md:hidden text-white z-50 relative"
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         >
           {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
