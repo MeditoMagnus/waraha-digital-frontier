@@ -16,14 +16,14 @@ export const MobileMenu = ({ isOpen, links, authLinks, onClose }: MobileMenuProp
 
   return (
     <>
-      {/* Enhanced backdrop overlay with stronger blur */}
+      {/* Full screen backdrop with blur */}
       <div 
-        className="md:hidden fixed inset-0 bg-black/70 backdrop-blur-md z-40"
+        className="md:hidden fixed inset-0 bg-black/60 backdrop-blur-lg z-40"
         onClick={onClose}
       />
       
-      {/* Mobile menu with enhanced blur and backdrop */}
-      <div className="md:hidden fixed top-0 right-0 h-full w-80 max-w-[80vw] bg-waraha-midnight/95 backdrop-blur-xl border-l border-white/20 shadow-2xl z-50 transform transition-transform duration-300">
+      {/* Mobile menu panel */}
+      <div className="md:hidden fixed top-0 right-0 h-full w-80 max-w-[80vw] bg-waraha-midnight/98 backdrop-blur-xl border-l border-white/20 shadow-2xl z-50 transform transition-transform duration-300">
         {/* Close button */}
         <div className="flex justify-end p-4">
           <button 

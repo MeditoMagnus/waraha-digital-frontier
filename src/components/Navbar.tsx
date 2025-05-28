@@ -40,33 +40,40 @@ const Navbar: React.FC = () => {
   const authLinks: NavLinkType[] = [];
 
   return (
-    <nav 
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled 
-          ? 'bg-waraha-midnight/99 backdrop-blur-xl border-b border-white/20 shadow-2xl py-2' 
-          : 'bg-transparent py-4'
-      }`}
-    >
-      <div className="container mx-auto flex justify-between items-center px-4">
-        <BrandLogo />
-        
-        <DesktopNav links={navLinks} authLinks={authLinks} />
-        
-        <button 
-          className="md:hidden text-white z-50 relative"
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        >
-          {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
-      </div>
+    <>
+      {/* Backdrop blur overlay that appears when scrolled */}
+      {isScrolled && (
+        <div className="fixed top-0 left-0 right-0 h-20 bg-waraha-midnight/80 backdrop-blur-xl border-b border-white/10 z-40" />
+      )}
       
-      <MobileMenu 
-        isOpen={isMobileMenuOpen}
-        links={navLinks}
-        authLinks={authLinks}
-        onClose={() => setIsMobileMenuOpen(false)}
-      />
-    </nav>
+      <nav 
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+          isScrolled 
+            ? 'bg-waraha-midnight/95 shadow-2xl py-2' 
+            : 'bg-transparent py-4'
+        }`}
+      >
+        <div className="container mx-auto flex justify-between items-center px-4">
+          <BrandLogo />
+          
+          <DesktopNav links={navLinks} authLinks={authLinks} />
+          
+          <button 
+            className="md:hidden text-white z-50 relative"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          >
+            {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
+        
+        <MobileMenu 
+          isOpen={isMobileMenuOpen}
+          links={navLinks}
+          authLinks={authLinks}
+          onClose={() => setIsMobileMenuOpen(false)}
+        />
+      </nav>
+    </>
   );
 };
 

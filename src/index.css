@@ -1,3 +1,4 @@
+
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&display=swap');
 
@@ -61,25 +62,32 @@
     font-family: 'DM Serif Display', serif;
   }
 
-  /* Enhanced backdrop-blur support for better visibility */
+  /* Enhanced backdrop-blur support */
   @supports (backdrop-filter: blur(10px)) {
     .backdrop-blur-md {
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+    .backdrop-blur-lg {
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
     }
     .backdrop-blur-xl {
-      backdrop-filter: blur(32px);
-      -webkit-backdrop-filter: blur(32px);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
     }
   }
 
-  /* Enhanced fallback for browsers that don't support backdrop-filter */
+  /* Fallback for browsers that don't support backdrop-filter */
   @supports not (backdrop-filter: blur(10px)) {
     .backdrop-blur-md {
-      background-color: rgba(15, 23, 42, 0.96);
+      background-color: rgba(15, 23, 42, 0.92);
+    }
+    .backdrop-blur-lg {
+      background-color: rgba(15, 23, 42, 0.95);
     }
     .backdrop-blur-xl {
-      background-color: rgba(15, 23, 42, 0.99);
+      background-color: rgba(15, 23, 42, 0.98);
     }
   }
 }
