@@ -24,12 +24,12 @@ export const MobileMenu = ({ isOpen, links, authLinks, onClose }: MobileMenuProp
       />
       
       {/* Mobile menu panel */}
-      <div className="md:hidden fixed top-0 right-0 h-full w-80 max-w-[80vw] bg-waraha-midnight/98 dark:bg-waraha-midnight/98 light:bg-white/98 backdrop-blur-xl border-l border-white/20 light:border-gray-200 shadow-2xl z-50 transform transition-transform duration-300">
+      <div className="md:hidden fixed top-0 right-0 h-full w-80 max-w-[80vw] bg-waraha-midnight/98 backdrop-blur-xl border-l border-white/20 shadow-2xl z-50 transform transition-transform duration-300 light:bg-white/98 light:border-gray-200">
         {/* Close button */}
         <div className="flex justify-end p-4">
           <button 
             onClick={onClose}
-            className="text-white light:text-charcoal-black hover:text-waraha-gold transition-colors p-2 rounded-full hover:bg-white/10 light:hover:bg-gray-100"
+            className="text-white hover:text-waraha-gold transition-colors p-2 rounded-full hover:bg-white/10 light:text-charcoal-black light:hover:bg-gray-100"
           >
             <X size={24} />
           </button>

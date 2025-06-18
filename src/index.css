@@ -78,23 +78,23 @@
 
   html {
     scroll-behavior: smooth;
-    /* Ensure proper viewport handling on mobile */
     -webkit-text-size-adjust: 100%;
   }
 
   body {
-    @apply bg-waraha-midnight dark:bg-waraha-midnight light:bg-off-white text-white dark:text-white light:text-charcoal-black;
+    @apply bg-waraha-midnight text-white;
     font-family: 'Inter', sans-serif;
-    /* Prevent horizontal scroll on mobile */
     overflow-x: hidden;
   }
 
   .light body {
+    @apply bg-off-white text-charcoal-black;
     font-family: 'Inter', sans-serif;
   }
 
   h1, h2, h3, h4, h5, h6 {
     font-family: 'DM Serif Display', serif;
+    @apply text-white;
   }
 
   .light h1, .light h2, .light h3, .light h4, .light h5, .light h6 {
@@ -147,7 +147,11 @@
 
 @layer components {
   .glassmorphism {
-    @apply backdrop-blur-md bg-white/10 dark:bg-white/10 light:bg-waraha-gold/10 border border-white/20 dark:border-white/20 light:border-waraha-gold/30 shadow-lg;
+    @apply backdrop-blur-md bg-white/10 border border-white/20 shadow-lg;
+  }
+  
+  .light .glassmorphism {
+    @apply bg-waraha-gold/10 border-waraha-gold/30;
   }
   
   .section {
@@ -155,7 +159,11 @@
   }
   
   .section-title {
-    @apply text-3xl md:text-4xl lg:text-5xl font-serif mb-8 text-center text-white dark:text-white light:text-charcoal-black;
+    @apply text-3xl md:text-4xl lg:text-5xl font-serif mb-8 text-center text-white;
+  }
+  
+  .light .section-title {
+    @apply text-charcoal-black;
   }
   
   .card-hover {
