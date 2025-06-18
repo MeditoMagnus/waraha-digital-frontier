@@ -360,7 +360,7 @@
   }
 
   body.light .navbar-bg {
-    background-color: var(--waraha-off-white);
+    background-color: #ffffe4;
     border-bottom: 1px solid var(--waraha-muted-gray);
   }
 
