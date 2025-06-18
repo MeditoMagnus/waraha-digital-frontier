@@ -1,4 +1,3 @@
-
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap');
@@ -38,6 +37,13 @@
     --ring: 212.7 26.8% 83.9%;
     
     --radius: 0.5rem;
+
+    /* Custom Waraha Colors - Dark Mode */
+    --waraha-gold: #d4af37;
+    --waraha-off-white: #FAF9F6;
+    --waraha-charcoal: #1C1C1C;
+    --waraha-muted-gray: #D3D3D3;
+    --waraha-pure-white: #FFFFFF;
   }
 
   .light {
@@ -68,6 +74,13 @@
     --border: 0 0% 83%;
     --input: 0 0% 83%;
     --ring: 51 50% 58%;
+
+    /* Custom Waraha Colors - Light Mode (Exact Hex Values) */
+    --waraha-gold: #D4AF37;
+    --waraha-off-white: #FAF9F6;
+    --waraha-charcoal: #1C1C1C;
+    --waraha-muted-gray: #D3D3D3;
+    --waraha-pure-white: #FFFFFF;
   }
 }
 
@@ -89,8 +102,8 @@
   }
 
   body.light {
-    background-color: #FAF9F6;
-    color: #1C1C1C;
+    background-color: var(--waraha-off-white);
+    color: var(--waraha-charcoal);
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -105,7 +118,7 @@
   body.light h5, 
   body.light h6 {
     font-family: 'Playfair Display', serif;
-    color: #1C1C1C;
+    color: var(--waraha-charcoal);
   }
 
   /* Enhanced backdrop-blur support */
@@ -157,7 +170,8 @@
   }
   
   body.light .glassmorphism {
-    @apply bg-waraha-gold/10 border-waraha-gold/30;
+    background-color: rgba(212, 175, 55, 0.1);
+    border-color: rgba(212, 175, 55, 0.3);
   }
   
   .section {
@@ -170,7 +184,7 @@
   }
   
   body.light .section-title {
-    color: #1C1C1C;
+    color: var(--waraha-charcoal);
   }
   
   .card-hover {
@@ -191,7 +205,7 @@
   }
 
   body.light .navbar-text {
-    color: #1C1C1C;
+    color: var(--waraha-charcoal);
   }
 
   .navbar-border {

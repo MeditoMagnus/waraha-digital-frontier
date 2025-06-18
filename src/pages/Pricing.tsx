@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
@@ -42,7 +41,7 @@ const Pricing: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-waraha-midnight via-slate-800 to-amber-900 dark:from-waraha-midnight dark:via-slate-800 dark:to-amber-900 light:from-off-white light:via-muted-gray light:to-amber-50">
+    <div className="min-h-screen w-full bg-gradient-to-br from-waraha-midnight via-slate-800 to-amber-900 dark:from-waraha-midnight dark:via-slate-800 dark:to-amber-900 light:from-off-white-exact light:via-pure-white-exact light:to-off-white-exact">
       <SEOMetaTags 
         title="Pricing - Waraha Group Management Consultancy Services"
         description="Compare our Basic, Standard, and Premium consultancy packages. Comprehensive VAT, accounting, and business services starting from AED 299/month."
@@ -62,7 +61,7 @@ const Pricing: React.FC = () => {
         <PricingHero />
 
         {/* Pricing Table Section */}
-        <section className="section bg-gradient-to-b from-slate-800/95 to-slate-700/95 backdrop-blur-sm dark:from-slate-800/95 dark:to-slate-700/95 light:from-muted-gray/95 light:to-off-white/95">
+        <section className="section bg-gradient-to-b from-slate-800/95 to-slate-700/95 backdrop-blur-sm dark:from-slate-800/95 dark:to-slate-700/95 light:from-pure-white-exact light:to-off-white-exact">
           <div className="container mx-auto">
             <ServiceComparisonCards services={services} />
             <ServiceComparisonTable services={services} />

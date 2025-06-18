@@ -71,15 +71,15 @@ const DownloadSection: React.FC = () => {
   };
 
   return (
-    <section className="section bg-gradient-to-b from-slate-900/95 to-waraha-midnight/95 backdrop-blur-sm dark:from-slate-900/95 dark:to-waraha-midnight/95 light:from-off-white/95 light:to-muted-gray/95">
+    <section className="section bg-gradient-to-b from-slate-900/95 to-waraha-midnight/95 backdrop-blur-sm dark:from-slate-900/95 dark:to-waraha-midnight/95 light:from-off-white-exact light:to-pure-white-exact">
       <div className="container mx-auto text-center">
-        <h3 className="text-2xl font-serif mb-6 text-yellow-400 dark:text-yellow-400 light:text-waraha-gold">Download Service Details</h3>
-        <p className="text-slate-300 mb-8 max-w-2xl mx-auto dark:text-slate-300 light:text-charcoal-black">
+        <h3 className="text-2xl font-serif mb-6 text-yellow-400 dark:text-yellow-400 light:text-waraha-gold-exact">Download Service Details</h3>
+        <p className="text-slate-300 mb-8 max-w-2xl mx-auto dark:text-slate-300 light:text-charcoal-black-exact">
           Get a comprehensive PDF document with all our service packages, terms, and contact information for your reference.
         </p>
         <Button 
           onClick={handleDownloadPDF}
-          className="bg-yellow-600 hover:bg-yellow-500 text-slate-900 font-semibold px-8 py-3 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 dark:bg-yellow-600 dark:hover:bg-yellow-500 dark:text-slate-900 light:bg-waraha-gold light:hover:bg-waraha-gold/90 light:text-white"
+          className="bg-yellow-600 hover:bg-yellow-500 text-slate-900 font-semibold px-8 py-3 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1 dark:bg-yellow-600 dark:hover:bg-yellow-500 dark:text-slate-900 light:bg-waraha-gold-exact light:hover:bg-waraha-gold-exact/90 light:text-pure-white-exact"
         >
           <Download className="h-5 w-5 mr-2" />
           Download PDF

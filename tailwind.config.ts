@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -66,9 +65,15 @@ export default {
 				waraha: {
 					'midnight': '#0F172A',
 					'silver': '#9F9EA1',
-					'gold': '#d4af37',
+					'gold': '#D4AF37',
 				},
-				// Light theme colors
+				// Exact light theme colors from user specification
+				'waraha-gold-exact': '#D4AF37',
+				'off-white-exact': '#FAF9F6',
+				'charcoal-black-exact': '#1C1C1C',
+				'muted-gray-exact': '#D3D3D3',
+				'pure-white-exact': '#FFFFFF',
+				// Legacy light theme colors (kept for compatibility)
 				'off-white': '#FAF9F6',
 				'charcoal-black': '#1C1C1C',
 				'muted-gray': '#D3D3D3',
