@@ -28,6 +28,7 @@ const Navbar: React.FC = () => {
     { name: 'About', href: '#about' },
     { name: 'Services', href: '#comprehensive-services' },
     { name: 'Why Us', href: '#why-us' },
+    { name: 'Pricing', href: '/pricing', isPageLink: true },
     { name: 'Contact', href: '#contact' },
     { 
       name: 'AI Consultant', 

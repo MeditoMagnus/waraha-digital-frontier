@@ -11,6 +11,7 @@ import NotFound from "./pages/NotFound";
 import PresalesConsultancy from "./pages/PresalesConsultancy";
 import SimpleConsultantAccess from "./pages/SimpleConsultantAccess";
 import ITConsultancy from "./pages/ITConsultancy";
+import Pricing from "./pages/Pricing";
 
 // Lazy load service pages
 const TaxationServices = lazy(() => import('./pages/services/TaxationServices'));
@@ -44,8 +45,8 @@ if (process.env.NODE_ENV === 'production') {
 const queryClient = new QueryClient();
 
 const LoadingSpinner = () => (
-  <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#0F172A' }}>
-    <div style={{ color: 'white' }}>Loading...</div>
+  <div className="min-h-screen flex items-center justify-center bg-waraha-midnight">
+    <div className="text-white">Loading...</div>
   </div>
 );
 
@@ -59,6 +60,7 @@ const App = () => (
           <Suspense fallback={<LoadingSpinner />}>
             <Routes>
               <Route path="/" element={<Index />} />
+              <Route path="/pricing" element={<Pricing />} />
               <Route path="/presales-consultancy" element={<PresalesConsultancy />} />
               <Route path="/consultant-access" element={<SimpleConsultantAccess />} />
               <Route path="/services/it-consultancy" element={<ITConsultancy />} />
