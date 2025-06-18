@@ -32,8 +32,16 @@ export const ThemeProvider = ({ children }: ThemeProviderProps) => {
   useEffect(() => {
     localStorage.setItem('theme', theme);
     
-    // Apply theme class to document
-    document.documentElement.classList.remove('light', 'dark');
+    // Apply theme class to body element
+    document.body.className = document.body.className
+      .replace(/\b(light|dark)\b/g, '')
+      .trim();
+    document.body.classList.add(theme);
+    
+    // Also apply to document element for compatibility
+    document.documentElement.className = document.documentElement.className
+      .replace(/\b(light|dark)\b/g, '')
+      .trim();
     document.documentElement.classList.add(theme);
   }, [theme]);
 

@@ -59,7 +59,7 @@ export const NavLink = ({
     return (
       <button 
         onClick={onClick}
-        className="text-white hover:text-waraha-gold transition-colors duration-300 flex items-center"
+        className="navbar-text hover:text-waraha-gold transition-colors duration-300 flex items-center"
       >
         {wrappedContent}
       </button>
@@ -70,7 +70,7 @@ export const NavLink = ({
     return (
       <Link 
         to={href}
-        className="text-white hover:text-waraha-gold transition-colors duration-300 relative after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-waraha-gold after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left flex items-center"
+        className="navbar-text hover:text-waraha-gold transition-colors duration-300 relative after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-waraha-gold after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left flex items-center"
       >
         {wrappedContent}
       </Link>
@@ -80,7 +80,7 @@ export const NavLink = ({
   return (
     <a 
       href={href}
-      className="text-white hover:text-waraha-gold transition-colors duration-300 relative after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-waraha-gold after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left"
+      className="navbar-text hover:text-waraha-gold transition-colors duration-300 relative after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-waraha-gold after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left"
     >
       {wrappedContent}
     </a>

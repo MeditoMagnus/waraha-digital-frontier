@@ -82,24 +82,30 @@
   }
 
   body {
-    @apply bg-waraha-midnight text-white;
     font-family: 'Inter', sans-serif;
     overflow-x: hidden;
+    background-color: #0F172A;
+    color: white;
   }
 
-  .light body {
-    @apply bg-off-white text-charcoal-black;
-    font-family: 'Inter', sans-serif;
+  body.light {
+    background-color: #FAF9F6;
+    color: #1C1C1C;
   }
 
   h1, h2, h3, h4, h5, h6 {
     font-family: 'DM Serif Display', serif;
-    @apply text-white;
+    color: white;
   }
 
-  .light h1, .light h2, .light h3, .light h4, .light h5, .light h6 {
+  body.light h1, 
+  body.light h2, 
+  body.light h3, 
+  body.light h4, 
+  body.light h5, 
+  body.light h6 {
     font-family: 'Playfair Display', serif;
-    @apply text-charcoal-black;
+    color: #1C1C1C;
   }
 
   /* Enhanced backdrop-blur support */
@@ -132,7 +138,7 @@
   }
 
   /* Light theme backdrop fallbacks */
-  .light @supports not (backdrop-filter: blur(10px)) {
+  body.light @supports not (backdrop-filter: blur(10px)) {
     .backdrop-blur-md {
       background-color: rgba(250, 249, 246, 0.92);
     }
@@ -150,7 +156,7 @@
     @apply backdrop-blur-md bg-white/10 border border-white/20 shadow-lg;
   }
   
-  .light .glassmorphism {
+  body.light .glassmorphism {
     @apply bg-waraha-gold/10 border-waraha-gold/30;
   }
   
@@ -159,15 +165,41 @@
   }
   
   .section-title {
-    @apply text-3xl md:text-4xl lg:text-5xl font-serif mb-8 text-center text-white;
+    @apply text-3xl md:text-4xl lg:text-5xl font-serif mb-8 text-center;
+    color: white;
   }
   
-  .light .section-title {
-    @apply text-charcoal-black;
+  body.light .section-title {
+    color: #1C1C1C;
   }
   
   .card-hover {
     @apply transition-all duration-300 hover:shadow-xl hover:-translate-y-2;
+  }
+
+  /* Navbar theme-aware styles */
+  .navbar-bg {
+    background-color: rgba(15, 23, 42, 0.95);
+  }
+
+  body.light .navbar-bg {
+    background-color: rgba(250, 249, 246, 0.95);
+  }
+
+  .navbar-text {
+    color: white;
+  }
+
+  body.light .navbar-text {
+    color: #1C1C1C;
+  }
+
+  .navbar-border {
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  body.light .navbar-border {
+    border-color: rgba(211, 211, 211, 0.3);
   }
 }
 

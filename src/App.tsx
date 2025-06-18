@@ -43,6 +43,12 @@ if (process.env.NODE_ENV === 'production') {
 
 const queryClient = new QueryClient();
 
+const LoadingSpinner = () => (
+  <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#0F172A' }}>
+    <div style={{ color: 'white' }}>Loading...</div>
+  </div>
+);
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider>
@@ -50,7 +56,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <Suspense fallback={<div className="min-h-screen bg-waraha-midnight dark:bg-waraha-midnight light:bg-off-white flex items-center justify-center"><div className="text-white dark:text-white light:text-charcoal-black">Loading...</div></div>}>
+          <Suspense fallback={<LoadingSpinner />}>
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/presales-consultancy" element={<PresalesConsultancy />} />

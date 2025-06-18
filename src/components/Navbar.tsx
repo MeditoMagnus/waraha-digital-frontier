@@ -43,13 +43,13 @@ const Navbar: React.FC = () => {
     <>
       {/* Backdrop blur overlay that appears when scrolled */}
       {isScrolled && (
-        <div className="fixed top-0 left-0 right-0 h-20 bg-waraha-midnight/80 backdrop-blur-xl border-b border-white/10 z-40 light:bg-off-white/80 light:border-muted-gray/30" />
+        <div className="fixed top-0 left-0 right-0 h-20 navbar-bg backdrop-blur-xl border-b navbar-border z-40" />
       )}
       
       <nav 
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
           isScrolled 
-            ? 'bg-waraha-midnight/95 shadow-2xl py-2 light:bg-off-white/95' 
+            ? 'navbar-bg shadow-2xl py-2' 
             : 'bg-transparent py-4'
         }`}
       >
@@ -59,7 +59,7 @@ const Navbar: React.FC = () => {
           <DesktopNav links={navLinks} authLinks={authLinks} />
           
           <button 
-            className="md:hidden text-white z-50 relative light:text-charcoal-black"
+            className="md:hidden navbar-text z-50 relative"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           >
             {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
