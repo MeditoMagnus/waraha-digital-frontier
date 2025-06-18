@@ -1,4 +1,3 @@
-
 /* Import fonts */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&display=swap');
@@ -34,9 +33,26 @@ body {
   overflow-x: hidden;
 }
 
+/* Light mode body styling */
+body.light {
+  background-color: #FAF9F6;
+  color: #1C1C1C;
+}
+
 h1, h2, h3, h4, h5, h6 {
   font-family: 'DM Serif Display', serif;
   line-height: 1.2;
+}
+
+/* Light mode heading styling */
+body.light h1, 
+body.light h2, 
+body.light h3, 
+body.light h4, 
+body.light h5, 
+body.light h6 {
+  color: #1C1C1C;
+  font-weight: bold;
 }
 
 a {
@@ -69,10 +85,37 @@ button {
   overflow: hidden;
 }
 
+/* Light mode section backgrounds */
+body.light .section {
+  background: #FAF9F6;
+}
+
+body.light #about {
+  background: linear-gradient(to bottom, #FFFFFF, #FAF9F6);
+}
+
+body.light #services {
+  background: linear-gradient(to bottom, #FAF9F6, #FFFFFF);
+}
+
+body.light #why-us {
+  background: linear-gradient(to bottom, #FFFFFF, #FAF9F6);
+}
+
+body.light #contact {
+  background: #FAF9F6;
+}
+
 .section-title {
   font-size: 2.5rem;
   margin-bottom: 2rem;
   text-align: center;
+}
+
+/* Light mode section titles */
+body.light .section-title {
+  color: #1C1C1C;
+  font-weight: bold;
 }
 
 .section-description {
@@ -80,6 +123,12 @@ button {
   max-width: 800px;
   margin: 0 auto 3rem;
   color: var(--text-gray);
+}
+
+/* Light mode section descriptions */
+body.light .section-description {
+  color: #1C1C1C;
+  font-weight: 600;
 }
 
 .btn-primary {

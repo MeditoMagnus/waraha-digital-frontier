@@ -42,16 +42,16 @@ const HeroSection: React.FC = () => {
         <div className="md:w-3/5 space-y-6">
           <h1 
             ref={headlineRef}
-            className="text-4xl md:text-5xl lg:text-7xl font-serif opacity-0"
+            className="text-4xl md:text-5xl lg:text-7xl font-serif opacity-0 dark:text-white"
             style={{opacity: 1, transition: 'opacity 0.7s ease-out, transform 0.7s ease-out'}}
           >
-            Your <span className="text-waraha-gold">Perspective.</span> <br />
+            Your <span className="text-waraha-gold font-bold">Perspective.</span> <br />
             Our <span className="text-waraha-silver">Expertise.</span>
           </h1>
           
           <p 
             ref={subheadlineRef}
-            className="text-lg md:text-xl text-gray-300 max-w-2xl opacity-0"
+            className="text-lg md:text-xl text-gray-300 dark:text-gray-300 max-w-2xl opacity-0"
             style={{opacity: 1, transition: 'opacity 0.7s ease-out, transform 0.7s ease-out'}}
           >
             At Waraha Group, we are committed to delivering end-to-end consultancy solutions that drive growth, compliance, and innovation for businesses across the UAE and beyond. With a strong foundation in IT consultancy, taxation, auditing, anti-money laundering (AML) compliance, and real estate advisory, our multidisciplinary team ensures your organization thrives in today's fast-changing regulatory and economic landscape.
@@ -64,15 +64,13 @@ const HeroSection: React.FC = () => {
           >
             <a 
               href="#contact" 
-              className="glassmorphism px-8 py-4 text-lg border border-waraha-gold hover:bg-waraha-gold hover:text-waraha-midnight transition-all duration-300 rounded-md inline-block"
-              style={{ color: 'white' }}
+              className="glassmorphism px-8 py-4 text-lg border border-waraha-gold hover:bg-waraha-gold transition-all duration-300 rounded-md inline-block font-semibold"
             >
               Get a Free Assessment
             </a>
             <button 
               onClick={goToAIConsultant}
-              className="glassmorphism px-8 py-4 text-lg border border-waraha-silver hover:bg-waraha-silver hover:text-waraha-midnight transition-all duration-300 rounded-md inline-block"
-              style={{ color: 'white' }}
+              className="glassmorphism px-8 py-4 text-lg border border-waraha-silver hover:bg-waraha-silver transition-all duration-300 rounded-md inline-block font-semibold"
             >
               Try our AI Consultants
             </button>
@@ -89,8 +87,7 @@ const HeroSection: React.FC = () => {
       
       <button 
         onClick={scrollToAbout}
-        className="absolute bottom-10 left-1/2 transform -translate-x-1/2 animate-bounce"
-        style={{ color: 'white' }}
+        className="absolute bottom-10 left-1/2 transform -translate-x-1/2 animate-bounce text-white dark:text-white"
         aria-label="Scroll down"
       >
         <ArrowDown size={32} />
