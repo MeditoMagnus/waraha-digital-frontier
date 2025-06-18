@@ -1,6 +1,7 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -38,6 +39,36 @@
     
     --radius: 0.5rem;
   }
+
+  .light {
+    --background: 48 96% 97%;
+    --foreground: 0 0% 11%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 11%;
+
+    --primary: 51 50% 58%;
+    --primary-foreground: 0 0% 11%;
+
+    --secondary: 0 0% 83%;
+    --secondary-foreground: 0 0% 11%;
+
+    --muted: 0 0% 83%;
+    --muted-foreground: 0 0% 45%;
+
+    --accent: 0 0% 83%;
+    --accent-foreground: 0 0% 11%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 0 0% 83%;
+    --input: 0 0% 83%;
+    --ring: 51 50% 58%;
+  }
 }
 
 @layer base {
@@ -52,14 +83,23 @@
   }
 
   body {
-    @apply bg-waraha-midnight text-white;
+    @apply bg-waraha-midnight dark:bg-waraha-midnight light:bg-off-white text-white dark:text-white light:text-charcoal-black;
     font-family: 'Inter', sans-serif;
     /* Prevent horizontal scroll on mobile */
     overflow-x: hidden;
   }
 
+  .light body {
+    font-family: 'Inter', sans-serif;
+  }
+
   h1, h2, h3, h4, h5, h6 {
     font-family: 'DM Serif Display', serif;
+  }
+
+  .light h1, .light h2, .light h3, .light h4, .light h5, .light h6 {
+    font-family: 'Playfair Display', serif;
+    @apply text-charcoal-black;
   }
 
   /* Enhanced backdrop-blur support */
@@ -90,11 +130,24 @@
       background-color: rgba(15, 23, 42, 0.98);
     }
   }
+
+  /* Light theme backdrop fallbacks */
+  .light @supports not (backdrop-filter: blur(10px)) {
+    .backdrop-blur-md {
+      background-color: rgba(250, 249, 246, 0.92);
+    }
+    .backdrop-blur-lg {
+      background-color: rgba(250, 249, 246, 0.95);
+    }
+    .backdrop-blur-xl {
+      background-color: rgba(250, 249, 246, 0.98);
+    }
+  }
 }
 
 @layer components {
   .glassmorphism {
-    @apply backdrop-blur-md bg-white/10 border border-white/20 shadow-lg;
+    @apply backdrop-blur-md bg-white/10 dark:bg-white/10 light:bg-waraha-gold/10 border border-white/20 dark:border-white/20 light:border-waraha-gold/30 shadow-lg;
   }
   
   .section {
@@ -102,7 +155,7 @@
   }
   
   .section-title {
-    @apply text-3xl md:text-4xl lg:text-5xl font-serif mb-8 text-center;
+    @apply text-3xl md:text-4xl lg:text-5xl font-serif mb-8 text-center text-white dark:text-white light:text-charcoal-black;
   }
   
   .card-hover {

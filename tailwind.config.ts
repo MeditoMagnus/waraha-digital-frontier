@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -66,7 +67,11 @@ export default {
 					'midnight': '#0F172A',
 					'silver': '#9F9EA1',
 					'gold': '#d4af37',
-				}
+				},
+				// Light theme colors
+				'off-white': '#FAF9F6',
+				'charcoal-black': '#1C1C1C',
+				'muted-gray': '#D3D3D3',
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
@@ -149,6 +154,7 @@ export default {
 			fontFamily: {
 				'sans': ['Inter', 'sans-serif'],
 				'serif': ['DM Serif Display', 'serif'],
+				'playfair': ['Playfair Display', 'serif'],
 			},
 		}
 	},

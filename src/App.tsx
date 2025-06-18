@@ -1,9 +1,11 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { lazy, Suspense } from "react";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import PresalesConsultancy from "./pages/PresalesConsultancy";
@@ -43,27 +45,29 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Suspense fallback={<div className="min-h-screen bg-waraha-midnight flex items-center justify-center"><div className="text-white">Loading...</div></div>}>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/presales-consultancy" element={<PresalesConsultancy />} />
-            <Route path="/consultant-access" element={<SimpleConsultantAccess />} />
-            <Route path="/services/it-consultancy" element={<ITConsultancy />} />
-            <Route path="/services/taxation" element={<TaxationServices />} />
-            <Route path="/services/auditing" element={<AuditingServices />} />
-            <Route path="/services/aml-compliance" element={<AMLCompliance />} />
-            <Route path="/services/real-estate" element={<RealEstateConsultancy />} />
-            <Route path="/services/business-advisory" element={<BusinessAdvisory />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Suspense>
-      </BrowserRouter>
-    </TooltipProvider>
+    <ThemeProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Suspense fallback={<div className="min-h-screen bg-waraha-midnight dark:bg-waraha-midnight light:bg-off-white flex items-center justify-center"><div className="text-white dark:text-white light:text-charcoal-black">Loading...</div></div>}>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/presales-consultancy" element={<PresalesConsultancy />} />
+              <Route path="/consultant-access" element={<SimpleConsultantAccess />} />
+              <Route path="/services/it-consultancy" element={<ITConsultancy />} />
+              <Route path="/services/taxation" element={<TaxationServices />} />
+              <Route path="/services/auditing" element={<AuditingServices />} />
+              <Route path="/services/aml-compliance" element={<AMLCompliance />} />
+              <Route path="/services/real-estate" element={<RealEstateConsultancy />} />
+              <Route path="/services/business-advisory" element={<BusinessAdvisory />} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Suspense>
+        </BrowserRouter>
+      </TooltipProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 
