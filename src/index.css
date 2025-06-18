@@ -1,3 +1,4 @@
+
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap');
@@ -244,8 +245,9 @@
   }
 
   body.light .pricing-hero-title {
-    color: var(--waraha-charcoal);
+    color: var(--waraha-gold);
     font-family: 'Playfair Display', serif;
+    font-weight: bold;
   }
 
   .pricing-hero-subtitle {
@@ -259,6 +261,7 @@
   body.light .pricing-hero-subtitle {
     color: var(--waraha-gold);
     font-family: 'Playfair Display', serif;
+    font-weight: bold;
   }
 
   .pricing-hero-description {
@@ -271,7 +274,8 @@
   }
 
   body.light .pricing-hero-description {
-    color: var(--waraha-charcoal);
+    color: var(--waraha-gold);
+    font-weight: bold;
   }
 
   .pricing-table-section {
@@ -360,7 +364,7 @@
   }
 
   body.light .navbar-bg {
-    background-color: #ffffe4;
+    background-color: #fffacd;
     border-bottom: 1px solid var(--waraha-muted-gray);
   }
 
@@ -648,8 +652,9 @@
   }
 
   body.light .pricing-table-service-header {
-    color: var(--waraha-charcoal);
+    color: var(--waraha-gold);
     font-family: 'Playfair Display', serif;
+    font-weight: bold;
   }
 
   .pricing-table-plan-header {
@@ -679,7 +684,8 @@
   }
 
   body.light .pricing-table-plan-name {
-    color: var(--waraha-charcoal);
+    color: var(--waraha-gold);
+    font-weight: bold;
   }
 
   .pricing-table-price {
@@ -690,7 +696,8 @@
   }
 
   body.light .pricing-table-price {
-    color: var(--waraha-charcoal);
+    color: var(--waraha-gold);
+    font-weight: bold;
   }
 
   .pricing-table-recommended-price {
@@ -704,8 +711,9 @@
   }
 
   body.light .pricing-table-period {
-    color: var(--waraha-charcoal);
-    opacity: 0.7;
+    color: var(--waraha-gold);
+    opacity: 0.8;
+    font-weight: bold;
   }
 
   .pricing-table-badge {
@@ -717,6 +725,7 @@
 
   body.light .pricing-table-badge {
     color: var(--waraha-gold);
+    font-weight: bold;
   }
 
   .pricing-table-row {
@@ -755,8 +764,9 @@
   }
 
   body.light .pricing-table-service-cell {
-    color: var(--waraha-charcoal);
+    color: var(--waraha-gold);
     border-bottom: 1px solid var(--waraha-muted-gray);
+    font-weight: bold;
   }
 
   .pricing-table-value-cell {
@@ -804,6 +814,7 @@
   body.light .terms-conditions-title {
     font-family: 'Playfair Display', serif;
     color: var(--waraha-gold);
+    font-weight: bold;
   }
 
   .terms-conditions-card {
@@ -823,7 +834,8 @@
   }
 
   body.light .terms-conditions-list {
-    color: var(--waraha-charcoal);
+    color: var(--waraha-gold);
+    font-weight: bold;
   }
 
   .terms-conditions-item {
@@ -858,6 +870,7 @@
   body.light .contact-info-title {
     font-family: 'Playfair Display', serif;
     color: var(--waraha-gold);
+    font-weight: bold;
   }
 
   .contact-info-card {
@@ -896,8 +909,9 @@
   }
 
   body.light .contact-info-label {
-    color: var(--waraha-charcoal);
-    opacity: 0.7;
+    color: var(--waraha-gold);
+    opacity: 0.8;
+    font-weight: bold;
   }
 
   .contact-info-link {
@@ -911,11 +925,136 @@
   }
 
   body.light .contact-info-link {
-    color: var(--waraha-charcoal);
+    color: var(--waraha-gold);
+    font-weight: bold;
   }
 
   body.light .contact-info-link:hover {
     color: var(--waraha-gold);
+    opacity: 0.8;
+  }
+
+  /* Pricing Card Styles for Mobile */
+  .pricing-card {
+    background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+  }
+
+  body.light .pricing-card {
+    background: var(--waraha-pure-white);
+    border: 1px solid var(--waraha-muted-gray);
+  }
+
+  .pricing-card-header {
+    background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+  }
+
+  body.light .pricing-card-header {
+    background: linear-gradient(135deg, var(--waraha-muted-gray) 0%, #e2e8f0 100%);
+  }
+
+  .pricing-card-title {
+    color: #e2e8f0;
+    font-family: 'DM Serif Display', serif;
+  }
+
+  body.light .pricing-card-title {
+    color: var(--waraha-gold);
+    font-family: 'Playfair Display', serif;
+    font-weight: bold;
+  }
+
+  .pricing-card-price {
+    color: #f1f5f9;
+    font-size: 1.5rem;
+    font-weight: bold;
+  }
+
+  body.light .pricing-card-price {
+    color: var(--waraha-gold);
+    font-weight: bold;
+  }
+
+  .pricing-card-period {
+    color: #cbd5e1;
+    font-size: 0.875rem;
+  }
+
+  body.light .pricing-card-period {
+    color: var(--waraha-gold);
+    opacity: 0.8;
+    font-weight: bold;
+  }
+
+  .pricing-card-badge {
+    color: #fbbf24;
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+
+  body.light .pricing-card-badge {
+    color: var(--waraha-gold);
+    font-weight: bold;
+  }
+
+  .pricing-card-service-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .pricing-card-service-name {
+    color: #e2e8f0;
+  }
+
+  body.light .pricing-card-service-name {
+    color: var(--waraha-gold);
+    font-weight: bold;
+  }
+
+  /* Standard plan specific styles */
+  .pricing-card-standard {
+    border: 2px solid var(--waraha-gold) !important;
+  }
+
+  .pricing-card-header-standard {
+    background: linear-gradient(135deg, #2a4365 0%, #3c5998 100%) !important;
+  }
+
+  body.light .pricing-card-header-standard {
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.15) 0%, rgba(212, 175, 55, 0.05) 100%) !important;
+  }
+
+  .pricing-card-title-standard {
+    color: var(--waraha-gold) !important;
+  }
+
+  .pricing-card-price-standard {
+    color: var(--waraha-gold) !important;
+  }
+
+  .pricing-card-period-standard {
+    color: var(--waraha-gold) !important;
+    opacity: 0.8;
+  }
+
+  .pricing-card-service-item-standard {
+    background-color: rgba(42, 67, 101, 0.05);
+  }
+
+  body.light .pricing-card-service-item-standard {
+    background-color: rgba(212, 175, 55, 0.05);
+  }
+
+  .pricing-card-service-name-standard {
+    color: var(--waraha-gold) !important;
+  }
+
+  body.light .pricing-card-service-name-standard {
+    color: var(--waraha-gold) !important;
+    font-weight: bold;
   }
 }
 
@@ -923,3 +1062,4 @@
   transform-style: preserve-3d;
   perspective: 1000px;
 }
+
